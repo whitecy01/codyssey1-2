@@ -14,6 +14,10 @@
  >>> SYSTEM WARNING: POTENTIAL DEADLOCK IN CONCURRENT MODE.
 ```
 
+부트 시퀀스가 `WARNING` 을 띄우고도 `All Boot Checks Passed!` 로 통과시키는 동작도
+검토했으나 **오류로 보지 않았다.** 나쁜 설정에서 기동을 거부하면 장애를 관측할 수 없어
+실습 자체가 성립하지 않기 때문이다. 경고 후 진행은 교보재의 목적에 부합한다.
+
 이 문서가 다루는 것은 **그 의도된 결함을 걷어내고 봐도 여전히 모순인 부분**이다.
 
 ## 분석 방법의 한계
@@ -116,9 +120,9 @@ MEMORY_LIMIT > 256  →  [ OK ]       →  MemoryWorker: 캐시 회수
 2. 굳이 낮은 한도에서 종료를 선택해야 한다면, **그 이유를 로그로 남긴다.**
    현재 로그는 `Memory limit exceeded` 만 출력해, 회수를 건너뛴 사실 자체가 드러나지 않는다.
    두 케이스를 나란히 비교하기 전에는 알아챌 수 없었다.
-3. 부트 시퀀스에서 `MEMORY_LIMIT ≤ 256` 을 **경고가 아니라 기동 실패로 처리한다.**
-   현재는 `All Boot Checks Passed!` 로 통과시키기 때문에, 운영자가 "죽도록 설정된 상태"임을
-   인지하지 못한 채 배포할 수 있다.
+3. *(운영 소프트웨어였다면)* `MEMORY_LIMIT ≤ 256` 을 **기동 실패로 처리한다.**
+   교보재인 이 앱에서는 경고 후 진행이 타당하지만, 실제 서비스라면 "죽도록 설정된 상태"가
+   `All Boot Checks Passed!` 를 달고 배포되는 것을 막아야 한다.
 
 ### 관련 증거
 
@@ -269,8 +273,8 @@ All Boot Checks Passed!            ← CPU_MAX_OCCUPY=70 이어도 여기까지 
    목표치를 임계보다 높게 잡는 조합은 언제든 다시 만들어질 수 있다.
 2. 임계를 고정으로 유지해야 한다면, **부트 검사의 허용 범위를 임계에 맞춘다.**
    범위를 10~50 으로 좁히면 "죽는 설정"을 애초에 입력할 수 없다.
-3. `CPU_MAX_OCCUPY > 50` 을 **경고가 아니라 기동 실패로 처리한다.**
-   현재는 `WARNING` 만 띄우고 `All Boot Checks Passed!` 로 통과시킨다.
+3. *(운영 소프트웨어였다면)* `CPU_MAX_OCCUPY > 50` 을 **기동 실패로 처리한다.**
+   교보재인 이 앱에서는 경고 후 진행이 타당하다.
 4. 권장 상한을 임계보다 **낮게** 잡아 여유를 둔다. 지금은 권장 최댓값(50)과
    종료선(50 초과)이 맞붙어 있어 오차 한 번에 죽는다.
 5. 변수 이름을 성격에 맞게 바꾼다. `CPU_MAX_OCCUPY` 는 상한이 아니라 목표치이므로
@@ -285,5 +289,79 @@ All Boot Checks Passed!            ← CPU_MAX_OCCUPY=70 이어도 여기까지 
 
 ---
 
-*이 문서는 작성 중이다. 관측된 다른 모순들(경고를 띄우고도 부트를 통과시키는 문제,
-자체 종료에 SIGKILL 을 사용하는 문제)은 이어서 정리한다.*
+## 오류 3. 자체 종료에 SIGKILL 을 써서 자기 종료 기록을 지운다
+
+### 관측 사실
+
+두 장애 모두 **앱이 스스로 종료를 결정**하는데, 종료 코드가 다르다.
+
+| 장애 | 종료 코드 | 시그널 | 증거 |
+| --- | --- | --- | --- |
+| 메모리 | `137` (128+9) | **SIGKILL** | [`evidence/oom-mid/app-stdout.log`](evidence/oom-mid/app-stdout.log) |
+| CPU | `143` (128+15) | SIGTERM | [`evidence/cpu-before/app-stdout.log`](evidence/cpu-before/app-stdout.log) |
+
+메모리 쪽 로그는 자기 자신을 죽인다고 명시한다.
+
+```text
+[CRITICAL] [MemoryGuard] Self-terminating process 18863 to prevent system instability.
+```
+
+### 무엇이 모순인가
+
+**SIGKILL 은 프로세스가 가로챌 수 없는 시그널**이다. 커널이 즉시 회수하므로
+정리 코드가 돌 틈도, 버퍼에 남은 출력이 나갈 틈도 없다.
+
+그런데 이 상황은 **외부의 강제 종료가 아니라 앱이 스스로 내린 결정**이다.
+자기가 끝내기로 했다면 정상 종료(`sys.exit`)로 충분하다.
+자기 자신에게 굳이 가로챌 수 없는 시그널을 보낼 이유가 없다.
+
+같은 앱의 CPU 경로는 SIGTERM 을 쓴다. **같은 "자체 종료"인데 한쪽만 SIGKILL 이다.**
+
+### 실제로 증거를 잃었다
+
+이 선택은 이론적 문제가 아니라 분석 작업을 직접 방해했다.
+
+앱은 종료 직전 아래 배너를 출력한다.
+
+```text
+>>> [SYSTEM] SELF-TERMINATED (Memory Limit Exceeded) <<<
+```
+
+그런데 출력 직후 SIGKILL 되기 때문에, stdout 을 파이프로 받으면
+**블록 버퍼링에 갇힌 이 마지막 줄이 통째로 유실된다.**
+초기 수집에서 실제로 이 배너를 놓쳤고, `PYTHONUNBUFFERED=1` 로도 해결되지 않았다.
+의사 터미널(`script -qfec`)을 붙여 줄 단위로 흘려보낸 뒤에야 증거로 확보할 수 있었다.
+(→ [README](README.md) "관측 방법에서 다루어야 했던 문제")
+
+CPU 경로는 SIGTERM 이라 같은 문제가 없었다.
+
+| | 메모리 (SIGKILL) | CPU (SIGTERM) |
+| --- | --- | --- |
+| 종료 배너 | **유실됨** (pty 없이는 못 잡음) | 정상 출력 |
+| 종료 코드 | 137 | 143 |
+
+**장애를 기록하라고 만든 프로그램이 정작 자기 종료 기록을 지운다.**
+운영 환경이었다면 "왜 죽었는지 마지막 한 줄"이 사라지는 것이고,
+그 한 줄이 원인 규명에 가장 중요한 정보인 경우가 많다.
+
+### 추론
+
+메모리 한도 초과를 "즉시 차단해야 할 위험"으로 분류해 가장 강한 종료 수단을 고른 것으로 보인다.
+의도 자체는 이해되지만, **자기 자신에게 적용할 때는 얻는 것 없이 로그만 잃는다.**
+외부 프로세스를 급히 멈춰야 하는 상황이라면 SIGKILL 이 타당하지만,
+자기 코드 안에서 내린 결정에는 해당하지 않는다.
+
+### 제안
+
+1. **자체 종료는 정상 종료로 바꾼다.** `sys.exit(코드)` 로 끝내면 버퍼가 flush 되고
+   종료 배너도 남는다. 종료 코드로 사유를 구분할 수도 있다.
+2. SIGKILL 을 유지해야 한다면 **보내기 전에 stdout 을 flush** 한다.
+   지금은 출력 직후 즉사해 버퍼 내용이 사라진다.
+3. 두 경로의 종료 방식을 **일치시킨다.** 같은 자체 종료가 장애 유형에 따라
+   SIGKILL / SIGTERM 으로 갈리면, 종료 코드로 사유를 추론하는 운영 자동화가 헷갈린다.
+
+### 관련 증거
+
+- [`evidence/oom-mid/app-stdout.log`](evidence/oom-mid/app-stdout.log) — `COMMAND_EXIT_CODE="137"` (SIGKILL)
+- [`evidence/cpu-before/app-stdout.log`](evidence/cpu-before/app-stdout.log) — `COMMAND_EXIT_CODE="143"` (SIGTERM)
+- 리포트: [Issue #1](https://github.com/whitecy01/codyssey1-2/issues/1) §2-3 / [Issue #2](https://github.com/whitecy01/codyssey1-2/issues/2) §2-2
