@@ -2,6 +2,7 @@
 
 | 항목 | 값 |
 | --- | --- |
+| 등록 Issue | [#2](https://github.com/whitecy01/codyssey1-2/issues/2) |
 | 장애 유형 | CPU Latency (과점유 방지 정책에 의한 종료) |
 | 대상 | `agent-leak-app` (Ubuntu 22.04 / aarch64 컨테이너, 8 vCPU) |
 | 관측 일시 | 2026-08-20 19:53 ~ 19:56 (KST) |

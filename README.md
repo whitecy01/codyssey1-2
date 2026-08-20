@@ -10,11 +10,14 @@
 
 ## 1. 리포트 (최종 결과물)
 
-| # | 장애 유형 | 리포트 | 조정한 환경변수 | Before → After |
+| Issue | 장애 유형 | 리포트 | 조정한 환경변수 | Before → After |
 | --- | --- | --- | --- | --- |
-| 1 | OOM Crash | [**01-oom.md**](reports/01-oom.md) | `MEMORY_LIMIT` | 50MB → 512MB · 생존 **6초 → 300초+** |
-| 2 | CPU Latency | [**02-cpu.md**](reports/02-cpu.md) | `CPU_MAX_OCCUPY` | 100 → 30 · 생존 **35초 → 120초+** |
-| 3 | Deadlock | [**03-deadlock.md**](reports/03-deadlock.md) | `MULTI_THREAD_ENABLE` | true → false · 로그 정체 **108초 → 0초** |
+| [**#1**](https://github.com/whitecy01/codyssey1-2/issues/1) | OOM Crash | [01-oom.md](reports/01-oom.md) | `MEMORY_LIMIT` | 50MB → 512MB · 생존 **6초 → 300초+** |
+| [**#2**](https://github.com/whitecy01/codyssey1-2/issues/2) | CPU Latency | [02-cpu.md](reports/02-cpu.md) | `CPU_MAX_OCCUPY` | 100 → 30 · 생존 **35초 → 120초+** |
+| [**#3**](https://github.com/whitecy01/codyssey1-2/issues/3) | Deadlock | [03-deadlock.md](reports/03-deadlock.md) | `MULTI_THREAD_ENABLE` | true → false · 로그 정체 **108초 → 0초** |
+
+각 리포트는 저장소에 **GitHub Issue로도 등록**되어 있다([#1](https://github.com/whitecy01/codyssey1-2/issues/1) · [#2](https://github.com/whitecy01/codyssey1-2/issues/2) · [#3](https://github.com/whitecy01/codyssey1-2/issues/3)).
+Issue 본문은 `reports/` 의 마크다운과 같은 내용이며, 증거로 가는 링크만 절대 URL로 바뀌어 있다.
 
 ### 조사에서 나온 핵심 발견 3가지
 

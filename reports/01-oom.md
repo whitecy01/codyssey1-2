@@ -2,6 +2,7 @@
 
 | 항목 | 값 |
 | --- | --- |
+| 등록 Issue | [#1](https://github.com/whitecy01/codyssey1-2/issues/1) |
 | 장애 유형 | OOM Crash (Memory Leak) |
 | 대상 | `agent-leak-app` (Ubuntu 22.04 / aarch64 컨테이너, 메모리 상한 1GB) |
 | 관측 일시 | 2026-08-20 19:45 ~ 19:53 (KST) |

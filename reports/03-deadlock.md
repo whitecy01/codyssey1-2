@@ -2,6 +2,7 @@
 
 | 항목 | 값 |
 | --- | --- |
+| 등록 Issue | [#3](https://github.com/whitecy01/codyssey1-2/issues/3) |
 | 장애 유형 | Deadlock (프로세스 무응답, PID 생존) |
 | 대상 | `agent-leak-app` (Ubuntu 22.04 / aarch64 컨테이너) |
 | 관측 일시 | 2026-08-20 18:48 ~ 18:53 (KST) |
