@@ -4,7 +4,7 @@
 | --- | --- |
 | 장애 유형 | CPU Latency (과점유 방지 정책에 의한 종료) |
 | 대상 | `agent-leak-app` (Ubuntu 22.04 / aarch64 컨테이너, 8 vCPU) |
-| 관측 일시 | 2026-08-19 18:29 ~ 18:31 (KST) |
+| 관측 일시 | 2026-08-20 19:53 ~ 19:56 (KST) |
 | 재현율 | 2/2 (`CPU_MAX_OCCUPY=100` 인 모든 실행에서 재현) |
 | 증거 | [`evidence/cpu-before/`](../evidence/cpu-before) · [`evidence/cpu-after/`](../evidence/cpu-after) |
 
@@ -22,7 +22,7 @@
 ```
 
 이후 `CpuWorker`가 보고하는 부하가 5% → 50%로 계단식 상승하고, **50%를 넘는 순간**
-아래 배너와 함께 프로세스가 종료된다. 기동부터 종료까지 **28초**였다.
+아래 배너와 함께 프로세스가 종료된다. 기동부터 종료까지 **35초**였다.
 
 ```text
 >>> [SYSTEM] WATCHDOG: INITIATING EMERGENCY ABORT (SIGTERM) <<<
@@ -40,32 +40,34 @@ OOM 케이스와 달리 이것은 **오류(crash)가 아니라 정책에 의한 
 `evidence/cpu-before/agent_app.log`
 
 ```text
-2026-08-19 18:29:06,450 [INFO] [CpuWorker] Current Load: 5.00%
-2026-08-19 18:29:09,580 [INFO] [CpuWorker] Current Load: 13.93%
-2026-08-19 18:29:12,711 [INFO] [CpuWorker] Current Load: 17.14%
-2026-08-19 18:29:15,838 [INFO] [CpuWorker] Current Load: 19.30%
-2026-08-19 18:29:18,954 [INFO] [CpuWorker] Current Load: 27.59%
-2026-08-19 18:29:22,067 [INFO] [CpuWorker] Current Load: 37.58%
-2026-08-19 18:29:25,186 [INFO] [CpuWorker] Current Load: 43.09%
-2026-08-19 18:29:28,299 [INFO] [CpuWorker] Current Load: 49.24%
-2026-08-19 18:29:31,420 [INFO] [CpuWorker] Current Load: 50.05%
-2026-08-19 18:29:31,523 [CRITICAL] [CpuWorker] CPU Threshold Violated! (50.05%).
+[CpuWorker] Current Load: 5.00%
+[CpuWorker] Current Load: 14.60%
+[CpuWorker] Current Load: 14.85%
+[CpuWorker] Current Load: 23.34%
+[CpuWorker] Current Load: 29.47%
+[CpuWorker] Current Load: 35.84%
+[CpuWorker] Current Load: 40.58%
+[CpuWorker] Current Load: 45.95%
+[CpuWorker] Current Load: 52.48%
+[CRITICAL] [CpuWorker] CPU Threshold Violated! (52.48%).
 ```
 
-약 3초 간격으로 5% → 50.05% 까지 25초에 걸쳐 상승했고, **49.24%에서는 살아 있다가
-50.05%가 되는 순간 위반 판정**이 났다. 임계선이 정확히 50%임을 보여주는 구간이다.
+약 3초 간격으로 5% → 52.48% 까지 30초에 걸쳐 상승했고, **45.95%에서는 살아 있다가
+50%를 넘어선 52.48%에서 위반 판정**이 났다. 임계선이 50%임을 보여주는 구간이며,
 부트 배너의 `Recommend Under 50%` 와 일치한다.
+(직전 실행에서는 50.05%에서 위반 판정이 났다 — 램프 속도에 따라 임계를 넘는 첫 샘플값만
+달라질 뿐 판정 기준은 동일하다.)
 
 ### 2-2. 종료 신호 — SIGTERM 확인
 
 `evidence/cpu-before/app-stdout.log` 끝부분
 
 ```text
-2026-08-19 18:29:31,523 [CRITICAL] [CpuWorker] CPU Threshold Violated! (50.05%).
+[CRITICAL] [CpuWorker] CPU Threshold Violated! (52.48%).
 
 >>> [SYSTEM] WATCHDOG: INITIATING EMERGENCY ABORT (SIGTERM) <<<
 
-Script done on 2026-08-19 18:29:31+09:00 [COMMAND_EXIT_CODE="143"]
+Script done on 2026-08-20 19:53:40+09:00 [COMMAND_EXIT_CODE="143"]
 ```
 
 **종료 코드 143 = 128 + 15 = SIGTERM.**
@@ -79,27 +81,37 @@ Watchdog이 이 신호를 골랐다는 것은 강제 파기가 아니라 계획�
 (`evidence/cpu-before/snapshots.txt`)
 
 ```text
-$ ps -o pid,ppid,stat,%cpu,%mem,rss,nlwp,etime,comm -p 3587
+$ ps -o pid,ppid,stat,%cpu,%mem,rss,nlwp,etime,comm -p 19522
   PID  PPID STAT %CPU %MEM   RSS NLWP     ELAPSED COMMAND
- 3587  3586 SN+   1.0  0.2 16700    1       00:22 agent-leak-app
+19522 19521 SN+   0.7  0.2 17036    1       00:22 agent-leak-app
 
-$ top -H -b -n1 -p 3587
+$ top -H -b -n1 -p 19522
   PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
- 3587 agent-a+  30  10   23168  16700   8508 S   0.0   0.2   0:00.22 agent-lea+
+19522 agent-a+  30  10   23168  17036   8460 S   0.0   0.2   0:00.17 agent-lea+
 ```
 
-`monitor.sh`의 관제 로그도 같은 이야기를 한다. (`evidence/cpu-before/monitor.log`)
+`monitor.sh`의 관제 로그도 같은 이야기를 한다. 임계 위반 직전 10초 구간이다.
+(`evidence/cpu-before/monitor.log`, `|` 오른쪽이 시스템 전체)
 
 ```text
-[2026-08-19 18:29:20] PROCESS:agent-leak-app PID:3587 STATE:S CPU:1.5% MEM:1.5% RSS:16MB THREADS:1
-[2026-08-19 18:29:24] PROCESS:agent-leak-app PID:3587 STATE:S CPU:0%   MEM:1.5% RSS:16MB THREADS:1
-[2026-08-19 18:29:28] PROCESS:agent-leak-app PID:3587 STATE:S CPU:3.0% MEM:1.5% RSS:16MB THREADS:1
-[2026-08-19 18:29:30] PROCESS:agent-leak-app PID:3587 STATE:S CPU:0%   MEM:1.5% RSS:16MB THREADS:1
+[2026-08-20 19:53:30] PROCESS:...PID:19522 STATE:S CPU:2.0% MEM:1.6% RSS:16MB THREADS:1 | SYS_CPU:1.2% SYS_MEM:5.2% SYS_AVAIL:970MB SYS_LOAD:0.12 DISK:4%
+[2026-08-20 19:53:33] PROCESS:...PID:19522 STATE:S CPU:0%   MEM:1.6% RSS:16MB THREADS:1 | SYS_CPU:0.9% SYS_MEM:5.2% SYS_AVAIL:970MB SYS_LOAD:0.11 DISK:4%
+[2026-08-20 19:53:35] PROCESS:...PID:19522 STATE:S CPU:2.5% MEM:1.6% RSS:16MB THREADS:1 | SYS_CPU:0.6% SYS_MEM:5.2% SYS_AVAIL:970MB SYS_LOAD:0.11 DISK:4%
+[2026-08-20 19:53:37] PROCESS:...PID:19522 STATE:S CPU:2.5% MEM:1.6% RSS:16MB THREADS:1 | SYS_CPU:0.5% SYS_MEM:5.2% SYS_AVAIL:969MB SYS_LOAD:0.11 DISK:4%
+[2026-08-20 19:53:39] PROCESS:...PID:19522 STATE:S CPU:0%   MEM:1.6% RSS:16MB THREADS:1 | SYS_CPU:0.4% SYS_MEM:5.2% SYS_AVAIL:970MB SYS_LOAD:0.10 DISK:4%
 ```
 
-**앱이 "Load 50%"라고 말하는 그 순간, OS가 본 이 프로세스의 CPU 소비는 0~3%다.**
-가장 결정적인 수치는 `top`의 `TIME+ 0:00.22` 다 — 22초 동안 누적 CPU 시간이
-**0.22초**밖에 안 된다(약 1%). 프로세스 상태도 내내 `S`(sleeping)이고 `R`(running)이 아니다.
+**앱이 "Load 52%"라고 말하는 그 순간, OS가 본 이 프로세스의 CPU 소비는 0~2.5%다.**
+가장 결정적인 수치는 `top`의 `TIME+ 0:00.17` 다 — 22초 동안 누적 CPU 시간이
+**0.17초**밖에 안 된다(약 0.8%). 프로세스 상태도 내내 `S`(sleeping)이고 `R`(running)이 아니다.
+
+**시스템 전체를 봐도 마찬가지다.** 이것이 진단의 결정타다.
+
+- `SYS_CPU`는 관측 내내 **0.4~1.2%** 였다(8코어 기준). 최댓값조차 1.2%다.
+- `SYS_LOAD`(1분 부하 평균)는 0.10~0.17 구간이며, 임계 위반 직전에는 오히려 **0.12 → 0.10으로 하락**했다.
+- 즉 이 프로세스가 CPU를 다른 곳에 숨겨 쓴 것이 아니라, **호스트 어디에서도 CPU 급증이 일어나지 않았다.**
+  프로세스 지표만 봤다면 "측정을 잘못한 것 아닌가"라고 의심할 수 있지만,
+  시스템 지표까지 조용하다는 사실이 그 가능성을 닫는다.
 
 이 불일치는 이 리포트에서 가장 중요한 관측이며, 3-2에서 해석한다.
 
@@ -116,6 +128,8 @@ $ top -H -b -n1 -p 3587
 ```
 
 120초 관측 동안 관측된 최대 부하는 **정확히 30.00%** 였고, 임계 위반은 한 번도 없었다.
+쿨다운 사이클은 3회 관측되었다. 같은 구간 OS 지표는 프로세스 CPU 최대 3.5%,
+`SYS_CPU` 최대 2.3% — Before와 사실상 같은 수준이다.
 
 ---
 
@@ -134,7 +148,8 @@ $ top -H -b -n1 -p 3587
 
 ### 3-2. 핵심 발견 — Watchdog이 보는 부하는 OS의 CPU 사용률이 아니다
 
-2-3에서 본 대로, 앱이 `Load: 50.05%` 를 보고하는 동안 실제 CPU 소비는 22초에 0.22초(≈1%)다.
+2-3에서 본 대로, 앱이 `Load: 52.48%` 를 보고하는 동안 실제 CPU 소비는 22초에 0.17초(≈0.8%)이고
+시스템 전체 CPU도 1.2%를 넘지 않았다.
 따라서 `Current Load` 는 **애플리케이션이 내부적으로 계산·시뮬레이션하는 자체 지표**이고,
 Watchdog은 그 내부 지표를 보고 종료를 결정한다.
 
@@ -158,7 +173,7 @@ Watchdog은 그 내부 지표를 보고 종료를 결정한다.
 CPU를 100% 썼어도 평균은 10%로 희석된다.
 
 그래서 `monitor.sh`는 `/proc/<pid>/stat`의 `utime + stime`을 2초 간격으로 **차분**해
-구간 사용률을 계산한다. 이번 케이스는 그렇게 재도 0~3%였으므로, 낮은 수치가
+구간 사용률을 계산한다. 이번 케이스는 그렇게 재도 0~2.5%였으므로, 낮은 수치가
 측정 방식의 한계 때문이 아니라 **실제로 CPU를 쓰지 않았기 때문**임이 확인된다.
 
 ### 3-4. 관련 OS 동작 원리
@@ -195,15 +210,16 @@ export CPU_MAX_OCCUPY=30     # Watchdog 임계 50% 아래. 부트 배너가 [ OK
 | --- | --- | --- |
 | `CPU_MAX_OCCUPY` | 100 | 30 |
 | 부트 판정 | `WARNING: Recommend Under 50%` | `OK` |
-| 관측된 최대 부하 | **50.05%** | **30.00%** |
-| 부하 패턴 | 단조 상승 (5% → 50%) | 상승 → `Peak reached` → 쿨다운(5%) 반복, 3사이클 |
+| 관측된 최대 부하 (앱 보고) | **52.48%** | **30.00%** |
+| 부하 패턴 | 단조 상승 (5% → 52%) | 상승 → `Peak reached` → 쿨다운(5%) 반복, 3사이클 |
 | 임계 위반 | **1회 → 종료** | **0회** |
-| 생존 시간 | **28초** | **120초 관측 종료까지 생존** |
+| 생존 시간 | **35초** | **120초 관측 종료까지 생존** |
 | 종료 사유 | Watchdog SIGTERM (exit 143) | 종료 없음 |
-| OS 관점 CPU | 0~3% (`TIME+ 0:00.22` / 22초) | 0~5.5% (동일 수준) |
+| OS 관점 CPU (프로세스) | 0~2.5% (`TIME+ 0:00.17` / 22초) | 0~3.5% (동일 수준) |
+| OS 관점 CPU (시스템) | 0.4~1.2%, `SYS_LOAD` 0.10~0.17 | 최대 2.3% (동일 수준) |
 | 증거 | `evidence/cpu-before/` | `evidence/cpu-after/` |
 
-생존 시간이 **28초 → 120초 이상**으로 늘었고, 임계 위반이 완전히 사라졌다.
+생존 시간이 **35초 → 120초 이상**으로 늘었고, 임계 위반이 완전히 사라졌다.
 OS 관점의 CPU 소비는 Before/After가 사실상 동일하다 — 3-2에서 설명한 대로
 **이 조치가 바꾼 것은 실제 CPU 부하가 아니라 앱 내부 지표가 임계를 넘느냐**이기 때문이다.
 

@@ -1,16 +1,16 @@
 === CASE: oom-before ===
-시작       : 2026-08-19 18:23:16
+시작       : 2026-08-20 19:52:25
 실행 계정  : agent-admin (uid=1000, non-root)
 MEMORY_LIMIT        = 50
 CPU_MAX_OCCUPY      = 30
 MULTI_THREAD_ENABLE = false
 
-APP PID    : 471
+APP PID    : 18739
 
-종료       : 2026-08-19 18:23:22
+종료       : 2026-08-20 19:52:31
 관측 시간  : 6s
 프로세스   : no (종료됨)
-로그 정체  : 0s (마지막 기록 이후)
+로그 정체  : 2s (마지막 기록 이후)
 
 === 터미널 출력 마지막 15줄 ===
  [ THREAD ] Concurrency: False 		[ OK ]
@@ -18,26 +18,28 @@ APP PID    : 471
  >>> SYSTEM STATUS: STABLE. STARTING WORKLOAD MONITORING...
 ==================================================
 
-2026-08-19 18:23:18,998 [INFO] [MemoryWorker] Current Heap: 25MB
-2026-08-19 18:23:22,031 [INFO] [MemoryWorker] Current Heap: 50MB
-2026-08-19 18:23:22,032 [CRITICAL] [MemoryGuard] Memory limit exceeded (50MB >= 50MB) / (Recommend Over 256MB)
-2026-08-19 18:23:22,032 [CRITICAL] [MemoryGuard] Self-terminating process 471 to prevent system instability.
+2026-08-20 19:52:27,768 [INFO] [MemoryWorker] Current Heap: 25MB
+2026-08-20 19:52:30,799 [INFO] [MemoryWorker] Current Heap: 50MB
+2026-08-20 19:52:30,800 [CRITICAL] [MemoryGuard] Memory limit exceeded (50MB >= 50MB) / (Recommend Over 256MB)
+2026-08-20 19:52:30,800 [CRITICAL] [MemoryGuard] Self-terminating process 18739 to prevent system instability.
 
 
 >>> [SYSTEM] SELF-TERMINATED (Memory Limit Exceeded) <<<
 
 
-Script done on 2026-08-19 18:23:22+09:00 [COMMAND_EXIT_CODE="137"]
+Script done on 2026-08-20 19:52:30+09:00 [COMMAND_EXIT_CODE="137"]
 
 === 앱 로그(agent_app.log) 마지막 10줄 ===
-2026-08-19 18:23:16,972 [INFO] [SafetyGuard] Process priority lowered (nice=10).
-2026-08-19 18:23:16,972 [INFO] Agent listening at port 15034
-2026-08-19 18:23:18,998 [INFO] [MemoryWorker] Current Heap: 25MB
-2026-08-19 18:23:22,031 [INFO] [MemoryWorker] Current Heap: 50MB
-2026-08-19 18:23:22,032 [CRITICAL] [MemoryGuard] Memory limit exceeded (50MB >= 50MB) / (Recommend Over 256MB)
-2026-08-19 18:23:22,032 [CRITICAL] [MemoryGuard] Self-terminating process 471 to prevent system instability.
+2026-08-20 19:52:25,740 [INFO] [SafetyGuard] Process priority lowered (nice=10).
+2026-08-20 19:52:25,741 [INFO] Agent listening at port 15034
+2026-08-20 19:52:27,768 [INFO] [MemoryWorker] Current Heap: 25MB
+2026-08-20 19:52:30,799 [INFO] [MemoryWorker] Current Heap: 50MB
+2026-08-20 19:52:30,800 [CRITICAL] [MemoryGuard] Memory limit exceeded (50MB >= 50MB) / (Recommend Over 256MB)
+2026-08-20 19:52:30,800 [CRITICAL] [MemoryGuard] Self-terminating process 18739 to prevent system instability.
 
 === 관제 로그(monitor.log) 마지막 10줄 ===
-[2026-08-19 18:23:18] MONITOR START PROCESS:agent-leak-app PID:471 INTERVAL:2s
-[2026-08-19 18:23:20] PROCESS:agent-leak-app PID:471 STATE:S CPU:1.5% MEM:4.0% RSS:41MB THREADS:1 DISK:4%
-[2026-08-19 18:23:22] PROCESS:agent-leak-app PID:471 STATUS:TERMINATED (after 4s)
+[2026-08-20 19:52:27] MONITOR START PROCESS:agent-leak-app PID:18739 INTERVAL:2s
+[2026-08-20 19:52:27] SCOPE cpu_cores=8 mem_scope=cgroup mem_total=1024MB
+[2026-08-20 19:52:27] LEGEND 좌측(PROCESS~THREADS)=대상 프로세스 / 우측(SYS_*~DISK)=시스템 전체
+[2026-08-20 19:52:29] PROCESS:agent-leak-app PID:18739 STATE:S CPU:0.5% MEM:4.0% RSS:41MB THREADS:1 | SYS_CPU:0.3% SYS_MEM:7.5% SYS_AVAIL:946MB SYS_LOAD:0.34 DISK:4%
+[2026-08-20 19:52:31] PROCESS:agent-leak-app PID:18739 STATUS:TERMINATED (after 4s)

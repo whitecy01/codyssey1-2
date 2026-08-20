@@ -1,54 +1,54 @@
 === CASE: cpu-after ===
-시작       : 2026-08-19 18:29:33
+시작       : 2026-08-20 18:46:55
 실행 계정  : agent-admin (uid=1000, non-root)
 MEMORY_LIMIT        = 512
 CPU_MAX_OCCUPY      = 30
 MULTI_THREAD_ENABLE = false
 
-APP PID    : 3990
+APP PID    : 5228
 
-종료       : 2026-08-19 18:31:33
+종료       : 2026-08-20 18:48:55
 관측 시간  : 120s
 프로세스   : yes (관측 종료 시점까지 생존)
 로그 정체  : 0s (마지막 기록 이후)
 
 === 터미널 출력 마지막 15줄 ===
-2026-08-19 18:31:13,168 [INFO] [MemoryWorker] Current Heap: 275MB
-2026-08-19 18:31:13,753 [INFO] [CpuWorker] Current Load: 6.69%
-2026-08-19 18:31:15,867 [INFO] [CpuWorker] Cooldown complete (5.00%). Resuming load increase...
-2026-08-19 18:31:16,230 [INFO] [MemoryWorker] Current Heap: 300MB
-2026-08-19 18:31:16,874 [INFO] [CpuWorker] Current Load: 5.00%
-2026-08-19 18:31:19,264 [INFO] [MemoryWorker] Current Heap: 325MB
-2026-08-19 18:31:19,981 [INFO] [CpuWorker] Current Load: 10.20%
-2026-08-19 18:31:22,298 [INFO] [MemoryWorker] Current Heap: 350MB
-2026-08-19 18:31:23,150 [INFO] [CpuWorker] Current Load: 11.02%
-2026-08-19 18:31:25,342 [INFO] [MemoryWorker] Current Heap: 375MB
-2026-08-19 18:31:26,279 [INFO] [CpuWorker] Current Load: 19.51%
-2026-08-19 18:31:28,402 [INFO] [MemoryWorker] Current Heap: 400MB
-2026-08-19 18:31:29,409 [INFO] [CpuWorker] Current Load: 20.61%
-2026-08-19 18:31:31,455 [INFO] [MemoryWorker] Current Heap: 425MB
-2026-08-19 18:31:32,531 [INFO] [CpuWorker] Current Load: 28.09%
+2026-08-20 18:48:36,275 [INFO] [CpuWorker] Current Load: 28.94%
+2026-08-20 18:48:38,408 [INFO] [CpuWorker] Peak reached (30.00%). Starting cooldown...
+2026-08-20 18:48:38,488 [INFO] [MemoryWorker] Current Heap: 300MB
+2026-08-20 18:48:39,424 [INFO] [CpuWorker] Current Load: 30.00%
+2026-08-20 18:48:41,531 [INFO] [MemoryWorker] Current Heap: 325MB
+2026-08-20 18:48:42,542 [INFO] [CpuWorker] Current Load: 21.63%
+2026-08-20 18:48:44,567 [INFO] [MemoryWorker] Current Heap: 350MB
+2026-08-20 18:48:45,672 [INFO] [CpuWorker] Current Load: 13.86%
+2026-08-20 18:48:47,609 [INFO] [MemoryWorker] Current Heap: 375MB
+2026-08-20 18:48:48,812 [INFO] [CpuWorker] Current Load: 12.63%
+2026-08-20 18:48:50,666 [INFO] [MemoryWorker] Current Heap: 400MB
+2026-08-20 18:48:51,953 [INFO] [CpuWorker] Current Load: 5.20%
+2026-08-20 18:48:53,716 [INFO] [MemoryWorker] Current Heap: 425MB
+2026-08-20 18:48:54,082 [INFO] [CpuWorker] Cooldown complete (5.00%). Resuming load increase...
+2026-08-20 18:48:55,097 [INFO] [CpuWorker] Current Load: 5.00%
 
 === 앱 로그(agent_app.log) 마지막 10줄 ===
-2026-08-19 18:31:19,264 [INFO] [MemoryWorker] Current Heap: 325MB
-2026-08-19 18:31:19,981 [INFO] [CpuWorker] Current Load: 10.20%
-2026-08-19 18:31:22,298 [INFO] [MemoryWorker] Current Heap: 350MB
-2026-08-19 18:31:23,150 [INFO] [CpuWorker] Current Load: 11.02%
-2026-08-19 18:31:25,342 [INFO] [MemoryWorker] Current Heap: 375MB
-2026-08-19 18:31:26,279 [INFO] [CpuWorker] Current Load: 19.51%
-2026-08-19 18:31:28,402 [INFO] [MemoryWorker] Current Heap: 400MB
-2026-08-19 18:31:29,409 [INFO] [CpuWorker] Current Load: 20.61%
-2026-08-19 18:31:31,455 [INFO] [MemoryWorker] Current Heap: 425MB
-2026-08-19 18:31:32,531 [INFO] [CpuWorker] Current Load: 28.09%
+2026-08-20 18:48:42,542 [INFO] [CpuWorker] Current Load: 21.63%
+2026-08-20 18:48:44,567 [INFO] [MemoryWorker] Current Heap: 350MB
+2026-08-20 18:48:45,672 [INFO] [CpuWorker] Current Load: 13.86%
+2026-08-20 18:48:47,609 [INFO] [MemoryWorker] Current Heap: 375MB
+2026-08-20 18:48:48,812 [INFO] [CpuWorker] Current Load: 12.63%
+2026-08-20 18:48:50,666 [INFO] [MemoryWorker] Current Heap: 400MB
+2026-08-20 18:48:51,953 [INFO] [CpuWorker] Current Load: 5.20%
+2026-08-20 18:48:53,716 [INFO] [MemoryWorker] Current Heap: 425MB
+2026-08-20 18:48:54,082 [INFO] [CpuWorker] Cooldown complete (5.00%). Resuming load increase...
+2026-08-20 18:48:55,097 [INFO] [CpuWorker] Current Load: 5.00%
 
 === 관제 로그(monitor.log) 마지막 10줄 ===
-[2026-08-19 18:31:15] PROCESS:agent-leak-app PID:3990 STATE:S CPU:0.5% MEM:28.4% RSS:291MB THREADS:3 DISK:4%
-[2026-08-19 18:31:17] PROCESS:agent-leak-app PID:3990 STATE:S CPU:2.5% MEM:30.9% RSS:316MB THREADS:3 DISK:4%
-[2026-08-19 18:31:19] PROCESS:agent-leak-app PID:3990 STATE:S CPU:2.0% MEM:33.3% RSS:341MB THREADS:3 DISK:4%
-[2026-08-19 18:31:21] PROCESS:agent-leak-app PID:3990 STATE:S CPU:1.0% MEM:33.3% RSS:341MB THREADS:3 DISK:4%
-[2026-08-19 18:31:23] PROCESS:agent-leak-app PID:3990 STATE:S CPU:1.5% MEM:35.7% RSS:366MB THREADS:3 DISK:4%
-[2026-08-19 18:31:25] PROCESS:agent-leak-app PID:3990 STATE:S CPU:1.5% MEM:38.2% RSS:391MB THREADS:3 DISK:4%
-[2026-08-19 18:31:27] PROCESS:agent-leak-app PID:3990 STATE:S CPU:1.0% MEM:38.2% RSS:391MB THREADS:3 DISK:4%
-[2026-08-19 18:31:29] PROCESS:agent-leak-app PID:3990 STATE:S CPU:3.5% MEM:40.6% RSS:416MB THREADS:3 DISK:4%
-[2026-08-19 18:31:31] PROCESS:agent-leak-app PID:3990 STATE:S CPU:1.5% MEM:43.1% RSS:441MB THREADS:3 DISK:4%
-[2026-08-19 18:31:33] PROCESS:agent-leak-app PID:3990 STATE:S CPU:1.5% MEM:43.1% RSS:441MB THREADS:3 DISK:4%
+[2026-08-20 18:48:35] PROCESS:agent-leak-app PID:5228 STATE:S CPU:0.5% MEM:28.4% RSS:291MB THREADS:3 | SYS_CPU:0.4% SYS_MEM:32.0% SYS_AVAIL:695MB SYS_LOAD:0.25 DISK:4%
+[2026-08-20 18:48:37] PROCESS:agent-leak-app PID:5228 STATE:S CPU:1.5% MEM:28.4% RSS:291MB THREADS:3 | SYS_CPU:0.4% SYS_MEM:32.0% SYS_AVAIL:695MB SYS_LOAD:0.23 DISK:4%
+[2026-08-20 18:48:39] PROCESS:agent-leak-app PID:5228 STATE:S CPU:2.5% MEM:30.8% RSS:316MB THREADS:3 | SYS_CPU:1.1% SYS_MEM:34.5% SYS_AVAIL:669MB SYS_LOAD:0.23 DISK:4%
+[2026-08-20 18:48:41] PROCESS:agent-leak-app PID:5228 STATE:S CPU:1.5% MEM:33.2% RSS:340MB THREADS:3 | SYS_CPU:0.5% SYS_MEM:36.9% SYS_AVAIL:645MB SYS_LOAD:0.23 DISK:4%
+[2026-08-20 18:48:43] PROCESS:agent-leak-app PID:5228 STATE:S CPU:1.0% MEM:33.3% RSS:341MB THREADS:3 | SYS_CPU:0.3% SYS_MEM:36.9% SYS_AVAIL:645MB SYS_LOAD:0.21 DISK:4%
+[2026-08-20 18:48:45] PROCESS:agent-leak-app PID:5228 STATE:S CPU:0.5% MEM:35.7% RSS:366MB THREADS:3 | SYS_CPU:0.4% SYS_MEM:39.5% SYS_AVAIL:619MB SYS_LOAD:0.21 DISK:4%
+[2026-08-20 18:48:47] PROCESS:agent-leak-app PID:5228 STATE:S CPU:2.0% MEM:38.2% RSS:391MB THREADS:3 | SYS_CPU:0.3% SYS_MEM:41.8% SYS_AVAIL:595MB SYS_LOAD:0.20 DISK:4%
+[2026-08-20 18:48:49] PROCESS:agent-leak-app PID:5228 STATE:S CPU:0.5% MEM:38.2% RSS:391MB THREADS:3 | SYS_CPU:0.9% SYS_MEM:41.8% SYS_AVAIL:595MB SYS_LOAD:0.20 DISK:4%
+[2026-08-20 18:48:51] PROCESS:agent-leak-app PID:5228 STATE:S CPU:2.0% MEM:40.6% RSS:416MB THREADS:3 | SYS_CPU:0.6% SYS_MEM:44.3% SYS_AVAIL:570MB SYS_LOAD:0.20 DISK:4%
+[2026-08-20 18:48:53] PROCESS:agent-leak-app PID:5228 STATE:S CPU:2.0% MEM:43.0% RSS:441MB THREADS:3 | SYS_CPU:0.4% SYS_MEM:46.8% SYS_AVAIL:544MB SYS_LOAD:0.18 DISK:4%

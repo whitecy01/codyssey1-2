@@ -1,4 +1,4 @@
-Script started on 2026-08-19 18:23:16+09:00 [<not executed on terminal>]
+Script started on 2026-08-20 19:52:25+09:00 [<not executed on terminal>]
 >>> Starting Agent Boot Sequence...
 [1/6] Checking User Account               [OK]
    ... Running as service user 'agent-admin' (uid=1000)
@@ -15,8 +15,8 @@ Script started on 2026-08-19 18:23:16+09:00 [<not executed on terminal>]
 ------------------------------------------------------------
 All Boot Checks Passed!
 Agent READY
-2026-08-19 18:23:16,972 [INFO] [SafetyGuard] Process priority lowered (nice=10).
-2026-08-19 18:23:16,972 [INFO] Agent listening at port 15034
+2026-08-20 19:52:25,740 [INFO] [SafetyGuard] Process priority lowered (nice=10).
+2026-08-20 19:52:25,741 [INFO] Agent listening at port 15034
 
 ==================================================
  [ Agent Initiate ] Resource Check 
@@ -28,13 +28,13 @@ Agent READY
  >>> SYSTEM STATUS: STABLE. STARTING WORKLOAD MONITORING...
 ==================================================
 
-2026-08-19 18:23:18,998 [INFO] [MemoryWorker] Current Heap: 25MB
-2026-08-19 18:23:22,031 [INFO] [MemoryWorker] Current Heap: 50MB
-2026-08-19 18:23:22,032 [CRITICAL] [MemoryGuard] Memory limit exceeded (50MB >= 50MB) / (Recommend Over 256MB)
-2026-08-19 18:23:22,032 [CRITICAL] [MemoryGuard] Self-terminating process 471 to prevent system instability.
+2026-08-20 19:52:27,768 [INFO] [MemoryWorker] Current Heap: 25MB
+2026-08-20 19:52:30,799 [INFO] [MemoryWorker] Current Heap: 50MB
+2026-08-20 19:52:30,800 [CRITICAL] [MemoryGuard] Memory limit exceeded (50MB >= 50MB) / (Recommend Over 256MB)
+2026-08-20 19:52:30,800 [CRITICAL] [MemoryGuard] Self-terminating process 18739 to prevent system instability.
 
 
 >>> [SYSTEM] SELF-TERMINATED (Memory Limit Exceeded) <<<
 
 
-Script done on 2026-08-19 18:23:22+09:00 [COMMAND_EXIT_CODE="137"]
+Script done on 2026-08-20 19:52:30+09:00 [COMMAND_EXIT_CODE="137"]

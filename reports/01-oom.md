@@ -4,7 +4,7 @@
 | --- | --- |
 | 장애 유형 | OOM Crash (Memory Leak) |
 | 대상 | `agent-leak-app` (Ubuntu 22.04 / aarch64 컨테이너, 메모리 상한 1GB) |
-| 관측 일시 | 2026-08-19 18:23 ~ 18:41 (KST) |
+| 관측 일시 | 2026-08-20 19:45 ~ 19:53 (KST) |
 | 재현율 | 3/3 (MEMORY_LIMIT ≤ 256 인 모든 실행에서 재현) |
 | 증거 | [`evidence/oom-before/`](../evidence/oom-before) · [`evidence/oom-mid/`](../evidence/oom-mid) · [`evidence/oom-after/`](../evidence/oom-after) |
 
@@ -18,7 +18,7 @@
 | MEMORY_LIMIT | 부트 시퀀스 판정 | 생존 시간 | 종료 사유 |
 | --- | --- | --- | --- |
 | 50MB | `[ WARNING: Recommend Over 256MB ]` | **6초** | MemoryGuard 자체 종료 (SIGKILL) |
-| 256MB | `[ WARNING: Recommend Over 256MB ]` | **34초** | MemoryGuard 자체 종료 (SIGKILL) |
+| 256MB | `[ WARNING: Recommend Over 256MB ]` | **33초** | MemoryGuard 자체 종료 (SIGKILL) |
 | 512MB | `[ OK ]` | **300초 관측 종료까지 생존** | 종료되지 않음 |
 
 부트 시퀀스([1/6]~[6/6])는 세 경우 모두 `All Boot Checks Passed!` 로 통과했다.
@@ -39,40 +39,52 @@
 `monitor.sh`가 2초 간격으로 수집한 `MEMORY_LIMIT=256` 실행 구간이다.
 (`evidence/oom-mid/monitor.log` 전문)
 
+`|` 왼쪽이 대상 프로세스, 오른쪽이 시스템 전체 지표다.
+
 ```text
-[2026-08-19 18:23:26] MONITOR START PROCESS:agent-leak-app PID:571 INTERVAL:2s
-[2026-08-19 18:23:28] PROCESS:agent-leak-app PID:571 STATE:S CPU:0%   MEM:4.0%  RSS:41MB  THREADS:1 DISK:4%
-[2026-08-19 18:23:34] PROCESS:agent-leak-app PID:571 STATE:S CPU:0.5% MEM:8.9%  RSS:91MB  THREADS:1 DISK:4%
-[2026-08-19 18:23:40] PROCESS:agent-leak-app PID:571 STATE:S CPU:2.5% MEM:13.7% RSS:141MB THREADS:1 DISK:4%
-[2026-08-19 18:23:46] PROCESS:agent-leak-app PID:571 STATE:S CPU:1.5% MEM:18.6% RSS:191MB THREADS:1 DISK:4%
-[2026-08-19 18:23:52] PROCESS:agent-leak-app PID:571 STATE:S CPU:2.5% MEM:23.5% RSS:241MB THREADS:1 DISK:4%
-[2026-08-19 18:23:54] PROCESS:agent-leak-app PID:571 STATE:S CPU:0.5% MEM:26.0% RSS:266MB THREADS:1 DISK:4%
-[2026-08-19 18:23:58] PROCESS:agent-leak-app PID:571 STATUS:TERMINATED (after 32s)
+[2026-08-20 19:52:35] MONITOR START PROCESS:agent-leak-app PID:18863 INTERVAL:2s
+[2026-08-20 19:52:35] SCOPE cpu_cores=8 mem_scope=cgroup mem_total=1024MB
+[2026-08-20 19:52:37] PROCESS:...PID:18863 STATE:S CPU:0%   MEM:4.0%  RSS:41MB  THREADS:1 | SYS_CPU:0.3% SYS_MEM:7.5%  SYS_AVAIL:946MB SYS_LOAD:0.31 DISK:4%
+[2026-08-20 19:52:43] PROCESS:...PID:18863 STATE:S CPU:1.0% MEM:8.9%  RSS:91MB  THREADS:1 | SYS_CPU:0.8% SYS_MEM:12.5% SYS_AVAIL:895MB SYS_LOAD:0.26 DISK:4%
+[2026-08-20 19:52:49] PROCESS:...PID:18863 STATE:S CPU:0.5% MEM:13.7% RSS:141MB THREADS:1 | SYS_CPU:0.4% SYS_MEM:17.4% SYS_AVAIL:845MB SYS_LOAD:0.24 DISK:4%
+[2026-08-20 19:52:55] PROCESS:...PID:18863 STATE:S CPU:0.5% MEM:18.6% RSS:191MB THREADS:1 | SYS_CPU:0.4% SYS_MEM:22.2% SYS_AVAIL:795MB SYS_LOAD:0.22 DISK:4%
+[2026-08-20 19:52:59] PROCESS:...PID:18863 STATE:S CPU:2.0% MEM:23.5% RSS:241MB THREADS:1 | SYS_CPU:0.5% SYS_MEM:27.1% SYS_AVAIL:746MB SYS_LOAD:0.20 DISK:4%
+[2026-08-20 19:53:03] PROCESS:...PID:18863 STATE:S CPU:1.0% MEM:26.0% RSS:266MB THREADS:1 | SYS_CPU:1.4% SYS_MEM:29.6% SYS_AVAIL:720MB SYS_LOAD:0.18 DISK:4%
+[2026-08-20 19:53:05] PROCESS:agent-leak-app PID:18863 STATUS:TERMINATED (after 30s)
 ```
 
-읽어야 할 지점은 세 가지다.
+**프로세스 관점**에서 읽어야 할 지점은 세 가지다.
 
 - **RSS가 41MB → 266MB로 단조 증가**한다. 26초 동안 225MB, 약 **8.7MB/s**. 감소 구간이 한 번도 없다.
   (2-2에서 볼 앱 자체 보고 기준으로는 25MB/3.03초 ≈ **8.3MB/s** — 두 측정이 일치한다.)
-- **CPU는 0~2.5%로 평탄하다.** 즉 계산량 폭증이 아니라 순수한 메모리 축적이다.
+- **CPU는 0~2.0%로 평탄하다.** 즉 계산량 폭증이 아니라 순수한 메모리 축적이다.
 - **THREADS는 1로 고정**이다. 스레드 누수(스레드가 계속 늘어나는 유형)가 아니다.
 
-> `MEM%` 의 분모는 호스트 전체 메모리가 아니라 컨테이너에 걸린 cgroup 상한(1GB)이다.
+**시스템 관점**은 이 누수가 실제로 호스트를 압박했음을 보여준다.
+
+- **가용 메모리가 946MB → 720MB로 226MB 줄었다.** 같은 구간 프로세스 RSS 증가분(225MB)과
+  **거의 정확히 일치**한다 — 이 감소분이 전부 이 프로세스 하나 때문이라는 뜻이다.
+  다른 프로세스가 범인일 가능성이 수치로 배제된다.
+- `SYS_MEM`이 7.5% → 29.6%로 올랐다. 30초 만에 시스템 메모리의 **1/5 이상을 이 프로세스가 잠식**했다.
+- 반면 `SYS_CPU`는 0.3~1.4%, `SYS_LOAD`는 오히려 0.31 → 0.18로 **떨어졌다.**
+  시스템 전체가 한가한데 메모리만 빨려 들어가는, 전형적인 누수 패턴이다.
+
+> `MEM%`/`SYS_MEM`의 분모는 호스트 전체 메모리가 아니라 컨테이너에 걸린 cgroup 상한(1GB)이다.
 > 컨테이너 안에서도 `/proc/meminfo` 는 호스트 전체 메모리를 보여주기 때문에,
 > 상한을 무시하고 계산하면 실제 압박도가 실제보다 훨씬 낮게 찍힌다.
+> 관제 로그 두 번째 줄의 `SCOPE` 가 이 분모를 명시한다.
 
 ### 2-2. 프로그램 실행 로그 — 25MB 단위 증가와 MemoryGuard 발동
 
 `evidence/oom-mid/agent_app.log`
 
 ```text
-2026-08-19 18:23:26,3xx [INFO] [MemoryWorker] Current Heap: 25MB
-2026-08-19 18:23:35,408 [INFO] [MemoryWorker] Current Heap: 100MB
-2026-08-19 18:23:44,557 [INFO] [MemoryWorker] Current Heap: 175MB
-2026-08-19 18:23:53,694 [INFO] [MemoryWorker] Current Heap: 250MB
-2026-08-19 18:23:56,727 [INFO] [MemoryWorker] Current Heap: 275MB
-2026-08-19 18:23:56,730 [CRITICAL] [MemoryGuard] Memory limit exceeded (275MB >= 256MB) / (Recommend Over 256MB)
-2026-08-19 18:23:56,730 [CRITICAL] [MemoryGuard] Self-terminating process 571 to prevent system instability.
+2026-08-20 19:52:53,3xx [INFO] [MemoryWorker] Current Heap: 175MB
+2026-08-20 19:52:59,4xx [INFO] [MemoryWorker] Current Heap: 225MB
+2026-08-20 19:53:02,421 [INFO] [MemoryWorker] Current Heap: 250MB
+2026-08-20 19:53:05,460 [INFO] [MemoryWorker] Current Heap: 275MB
+2026-08-20 19:53:05,461 [CRITICAL] [MemoryGuard] Memory limit exceeded (275MB >= 256MB) / (Recommend Over 256MB)
+2026-08-20 19:53:05,461 [CRITICAL] [MemoryGuard] Self-terminating process 18863 to prevent system instability.
 ```
 
 **약 3초마다 정확히 25MB씩** 늘어난다. 앱이 보고하는 `Current Heap` 값과
@@ -87,11 +99,11 @@
 ```text
 >>> [SYSTEM] SELF-TERMINATED (Memory Limit Exceeded) <<<
 
-Script done on 2026-08-19 18:23:56+09:00 [COMMAND_EXIT_CODE="137"]
+Script done on 2026-08-20 19:53:05+09:00 [COMMAND_EXIT_CODE="137"]
 ```
 
 **종료 코드 137 = 128 + 9 = SIGKILL.** 프로세스가 시그널 9로 죽었다는 뜻이다.
-`MemoryGuard` 로그의 "Self-terminating process 571" 과 합치면,
+`MemoryGuard` 로그의 "Self-terminating process 18863" 과 합치면,
 **외부(커널 OOM Killer)가 아니라 애플리케이션이 스스로 자기 PID에 SIGKILL을 보냈다**는 결론이 나온다.
 
 > 참고: 앱은 종료 배너를 출력한 직후 SIGKILL 되기 때문에, stdout을 파이프로 연결하면
@@ -115,7 +127,7 @@ MemoryGuard는 `힙 사용량 >= MEMORY_LIMIT` 을 매 사이클 검사한다.
 증가 속도가 8.3MB/s로 일정하므로 사망 시점은 `MEMORY_LIMIT / 8.3MB/s` 로 결정된다.
 
 - 50MB → 약 6초 (실측 6초)
-- 256MB → 약 31초 (실측 34초)
+- 256MB → 약 31초 (실측 33초)
 
 **MEMORY_LIMIT은 누수를 막는 값이 아니라 "언제 죽을지"를 정하는 값**이다.
 
@@ -125,17 +137,22 @@ MemoryGuard는 `힙 사용량 >= MEMORY_LIMIT` 을 매 사이클 검사한다.
 **종료가 아니라 정리(cleanup)** 가 수행된다. (`evidence/oom-after/agent_app.log`)
 
 ```text
-2026-08-19 18:37:17,518 [INFO]    [MemoryWorker] Current Heap: 525MB
-2026-08-19 18:37:17,519 [WARNING] [MemoryWorker] Memory Usage Reached Limit (525MB). Starting cleanup...
-2026-08-19 18:37:17,569 [INFO]    [System] Memory Cache Flushed. Process Stabilized.
+2026-08-20 19:48:23,715 [INFO]    [MemoryWorker] Current Heap: 525MB
+2026-08-20 19:48:23,715 [WARNING] [MemoryWorker] Memory Usage Reached Limit (525MB). Starting cleanup...
+2026-08-20 19:48:23,727 [INFO]    [System] Memory Cache Flushed. Process Stabilized.
 ```
 
-이 회수가 관제 로그에서도 그대로 관측된다. RSS가 한 틱 만에 516MB → 16MB로 떨어진다.
+이 회수가 관제 로그에서도 그대로 관측된다. **한 틱(2초) 만에** 프로세스 RSS가 516MB → 16MB로,
+시스템 가용 메모리가 468MB → 970MB로 되돌아온다.
 
 ```text
-[2026-08-19 18:37:16] PROCESS:agent-leak-app PID:9092 STATE:S CPU:2.0% MEM:50.4% RSS:516MB THREADS:3
-[2026-08-19 18:37:18] PROCESS:agent-leak-app PID:9092 STATE:S CPU:4.0% MEM:1.5%  RSS:16MB  THREADS:3
+[2026-08-20 19:48:22] PROCESS:...PID:12479 STATE:S CPU:1.5% MEM:50.4% RSS:516MB THREADS:3 | SYS_CPU:2.9% SYS_MEM:54.2% SYS_AVAIL:468MB SYS_LOAD:0.32
+[2026-08-20 19:48:24] PROCESS:...PID:12479 STATE:S CPU:1.5% MEM:1.5%  RSS:16MB  THREADS:3 | SYS_CPU:0.5% SYS_MEM:5.2%  SYS_AVAIL:970MB SYS_LOAD:0.32
 ```
+
+시스템 지표가 프로세스 지표와 **같은 틱에 같은 폭으로** 움직인다는 점이 중요하다.
+회수된 500MB가 커널에 실제로 반환되어 다른 프로세스가 쓸 수 있는 상태가 되었다는
+직접 증거다(단순히 앱 내부 카운터만 리셋된 것이 아니다).
 
 300초 관측 동안 이 **톱니(sawtooth) 사이클이 4회** 반복되었고 프로세스는 끝까지 살아남았다.
 사이클 주기는 약 66초다.
@@ -176,8 +193,9 @@ export MEMORY_LIMIT=512      # 부트 판정이 [ WARNING ] → [ OK ] 로 바�
 | --- | --- | --- | --- |
 | `MEMORY_LIMIT` | 50MB | 256MB | 512MB |
 | 부트 판정 | `WARNING: Recommend Over 256MB` | `WARNING: Recommend Over 256MB` | `OK` |
-| 생존 시간 | **6초** | **34초** | **300초 관측 종료까지 생존** |
-| 최대 RSS | 41MB | 266MB | 516MB (회수 후 16MB로 복귀) |
+| 생존 시간 | **6초** | **33초** | **300초 관측 종료까지 생존** |
+| 최대 RSS (프로세스) | 41MB | 266MB | 516MB (회수 후 16MB로 복귀) |
+| 최소 가용 메모리 (시스템) | 946MB | 720MB | **468MB** (회수 후 970MB로 복귀) |
 | 종료 사유 | MemoryGuard SIGKILL (exit 137) | MemoryGuard SIGKILL (exit 137) | 종료 없음 |
 | 메모리 회수 | 없음 | 없음 | **4회 (`Memory Cache Flushed`)** |
 | 증거 | `evidence/oom-before/` | `evidence/oom-mid/` | `evidence/oom-after/` |

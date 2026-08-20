@@ -4,7 +4,7 @@
 | --- | --- |
 | 장애 유형 | Deadlock (프로세스 무응답, PID 생존) |
 | 대상 | `agent-leak-app` (Ubuntu 22.04 / aarch64 컨테이너) |
-| 관측 일시 | 2026-08-19 18:31 ~ 18:35 (KST) |
+| 관측 일시 | 2026-08-20 18:48 ~ 18:53 (KST) |
 | 재현율 | 2/2 (`MULTI_THREAD_ENABLE=true` 인 모든 실행에서 동일 지점에서 정지) |
 | 증거 | [`evidence/deadlock-before/`](../evidence/deadlock-before) · [`evidence/deadlock-after/`](../evidence/deadlock-after) |
 
@@ -16,7 +16,7 @@
 **약 10초 뒤 모든 활동이 멈춘다.** 앞선 두 장애(OOM/CPU)와 결정적으로 다른 점은
 **프로세스가 죽지 않는다**는 것이다.
 
-- `ps -ef` 에 PID가 그대로 살아 있다 (관측 종료 시점 경과 시간 `02:00`).
+- `ps -ef` 에 PID가 그대로 살아 있다 (관측 종료 시점 경과 시간 `01:59`).
 - 포트 15034는 여전히 `LISTEN` 상태다.
 - 그런데 로그가 **108초 동안 단 한 줄도 늘지 않았다.**
 - CPU·메모리 수치도 완전히 정지했다.
@@ -51,20 +51,21 @@
 `evidence/deadlock-before/agent_app.log` 의 마지막 8줄이자, 이후 108초 동안 추가된 줄이 없는 지점이다.
 
 ```text
-18:31:42,180 [INFO] [AgentWorker][Worker-Thread-1] Process Started. Attempting to lock [Shared_Memory_A]...
-18:31:42,180 [INFO] [AgentWorker][Worker-Thread-2] Process Started. Attempting to lock [Socket_Pool_B]...
-18:31:42,180 [INFO] [AgentWorker][Worker-Thread-1] LOCK ACQUIRED: [Shared_Memory_A]. (Holding...)
-18:31:42,180 [INFO] [AgentWorker][Worker-Thread-2] LOCK ACQUIRED: [Socket_Pool_B]. (Holding...)
-18:31:42,180 [INFO] [AgentWorker] Waiting for worker threads to complete transactions...
-18:31:42,181 [INFO] [AgentWorker][Worker-Thread-1] Processing critical data in Memory A...
-18:31:42,181 [INFO] [AgentWorker][Worker-Thread-2] Establishing network connections in Pool B...
-18:31:44,194 [INFO] [AgentWorker][Worker-Thread-2] Need resource [Shared_Memory_A] to write logs.
-18:31:44,195 [INFO] [AgentWorker][Worker-Thread-1] Need resource [Socket_Pool_B] to finish job.
-18:31:44,196 [INFO] [AgentWorker][Worker-Thread-2] WAITING for [Shared_Memory_A]... (Status: BLOCKED)
-18:31:44,196 [INFO] [AgentWorker][Worker-Thread-1] WAITING for [Socket_Pool_B]... (Status: BLOCKED)
+18:49:03,992 [INFO] [Worker-Thread-1] Process Started. Attempting to lock [Shared_Memory_A]...
+18:49:03,992 [INFO] [AgentWorker][Worker-Thread-1] LOCK ACQUIRED: [Shared_Memory_A]. (Holding...)
+18:49:03,993 [INFO] [AgentWorker][Worker-Thread-2] Process Started. Attempting to lock [Socket_Pool_B]...
+18:49:03,993 [INFO] [AgentWorker] Waiting for worker threads to complete transactions...
+18:49:03,994 [INFO] [AgentWorker][Worker-Thread-1] Processing critical data in Memory A...
+18:49:03,995 [INFO] [AgentWorker][Worker-Thread-2] LOCK ACQUIRED: [Socket_Pool_B]. (Holding...)
+18:49:03,995 [INFO] [AgentWorker][Worker-Thread-2] Establishing network connections in Pool B...
+18:49:06,012 [INFO] [AgentWorker][Worker-Thread-1] Need resource [Socket_Pool_B] to finish job.
+18:49:06,012 [INFO] [AgentWorker][Worker-Thread-1] WAITING for [Socket_Pool_B]... (Status: BLOCKED)
+18:49:06,013 [INFO] [AgentWorker][Worker-Thread-2] Need resource [Shared_Memory_A] to write logs.
+18:49:06,013 [INFO] [AgentWorker][Worker-Thread-2] WAITING for [Shared_Memory_A]... (Status: BLOCKED)
 ```
 
-이 11줄만으로 교착 구조가 완전히 드러난다.
+이 11줄만으로 교착 구조가 완전히 드러난다. 두 스레드가 **같은 밀리초에** 각자 첫 락을 잡고(`18:49:03,992` / `18:49:03,995`),
+2초 뒤 동시에 두 번째 락을 요구하며 함께 멈춘다.
 
 | 스레드 | 점유 중인 락 | 대기 중인 락 |
 | --- | --- | --- |
@@ -90,15 +91,15 @@
 
 ```text
 $ ps -ef | grep agent-leak-app
-agent-a+  5681  5680  0 18:31 pts/0    00:00:00 ./agent-leak-app
-agent-a+  5682  5681  0 18:31 pts/0    00:00:00 ./agent-leak-app
+agent-a+  7642  7641  0 18:48 pts/0    00:00:00 ./agent-leak-app
+agent-a+  7643  7642  0 18:48 pts/0    00:00:00 ./agent-leak-app
 
-$ ps -o pid,ppid,stat,%cpu,%mem,rss,nlwp,etime,comm -p 5682
+$ ps -o pid,ppid,stat,%cpu,%mem,rss,nlwp,etime,comm -p 7643
   PID  PPID STAT %CPU %MEM   RSS NLWP     ELAPSED COMMAND
- 5682  5681 SNl+  0.0  0.2 16572    3       02:00 agent-leak-app
+ 7643  7642 SNl+  0.0  0.2 16524    3       01:59 agent-leak-app
 ```
 
-`ELAPSED 02:00` — 2분째 살아 있다. `NLWP 3` — 스레드 3개(메인 + 워커 2개)가 그대로 있다.
+`ELAPSED 01:59` — 2분째 살아 있다. `NLWP 3` — 스레드 3개(메인 + 워커 2개)가 그대로 있다.
 
 포트도 계속 열려 있다.
 
@@ -110,48 +111,54 @@ tcp   LISTEN 0      1            0.0.0.0:15034      0.0.0.0:*
 ### 2-3. 스레드 단위 정체 증거 — 세 스레드 모두 CPU 시간이 0
 
 ```text
-$ ps -L -o pid,tid,stat,%cpu,wchan:20,comm -p 5682
+$ ps -L -o pid,tid,stat,%cpu,wchan:20,comm -p 7643
   PID   TID STAT %CPU WCHAN                COMMAND
- 5682  5682 SNl+  0.0 -                    agent-leak-app
- 5682  5774 SNl+  0.0 -                    agent-leak-app
- 5682  5775 SNl+  0.0 -                    agent-leak-app
+ 7643  7643 SNl+  0.0 -                    agent-leak-app
+ 7643  7766 SNl+  0.0 -                    agent-leak-app
+ 7643  7767 SNl+  0.0 -                    agent-leak-app
 
-$ top -H -b -n1 -p 5682
+$ top -H -b -n1 -p 7643
   PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
- 5682 agent-a+  30  10  169728  16572   8508 S   0.0   0.2   0:00.05 agent-lea+
- 5774 agent-a+  30  10  169728  16572   8508 S   0.0   0.2   0:00.00 agent-lea+
- 5775 agent-a+  30  10  169728  16572   8508 S   0.0   0.2   0:00.00 agent-lea+
+ 7643 agent-a+  30  10  169728  16524   8460 S   0.0   0.2   0:00.02 agent-lea+
+ 7766 agent-a+  30  10  169728  16524   8460 S   0.0   0.2   0:00.00 agent-lea+
+ 7767 agent-a+  30  10  169728  16524   8460 S   0.0   0.2   0:00.00 agent-lea+
 ```
 
-핵심 수치는 **워커 스레드 두 개(TID 5774, 5775)의 `TIME+`가 `0:00.00`** 이라는 점이다.
-2분 동안 누적 CPU 시간이 0이다. 세 스레드 모두 상태가 `S`(sleeping)이고,
+핵심 수치는 **워커 스레드 두 개(TID 7766, 7767)의 `TIME+`가 `0:00.00`** 이라는 점이다.
+2분 동안 누적 CPU 시간이 0이다. 메인 스레드조차 `0:00.02`다. 세 스레드 모두 상태가 `S`(sleeping)이고,
 **무한 루프로 도는 것이 아니라 잠들어 있다.** 이것이 "바쁜 대기(busy wait)"가 아니라
 "락 대기(blocked on lock)"라는 결정적 근거다.
 
 ### 2-4. 자원 변화 정체 증거 — 관제 로그가 완전히 평평하다
 
-`evidence/deadlock-before/monitor.log` (2초 간격, 59줄 중 마지막 부분)
+`evidence/deadlock-before/monitor.log`. 왼쪽이 대상 프로세스, `|` 오른쪽이 시스템 전체다.
 
 ```text
-[2026-08-19 18:33:16] PROCESS:agent-leak-app PID:5682 STATE:S CPU:0% MEM:1.5% RSS:16MB THREADS:3 DISK:4%
-[2026-08-19 18:33:18] PROCESS:agent-leak-app PID:5682 STATE:S CPU:0% MEM:1.5% RSS:16MB THREADS:3 DISK:4%
-[2026-08-19 18:33:22] PROCESS:agent-leak-app PID:5682 STATE:S CPU:0% MEM:1.5% RSS:16MB THREADS:3 DISK:4%
-[2026-08-19 18:33:28] PROCESS:agent-leak-app PID:5682 STATE:S CPU:0% MEM:1.5% RSS:16MB THREADS:3 DISK:4%
-[2026-08-19 18:33:34] PROCESS:agent-leak-app PID:5682 STATE:S CPU:0% MEM:1.5% RSS:16MB THREADS:3 DISK:4%
+[2026-08-20 18:50:46] PROCESS:agent-leak-app PID:7643 STATE:S CPU:0% MEM:1.5% RSS:16MB THREADS:3 | SYS_CPU:0.3% SYS_MEM:5.1% SYS_AVAIL:971MB SYS_LOAD:0.07 DISK:4%
+[2026-08-20 18:50:48] PROCESS:agent-leak-app PID:7643 STATE:S CPU:0% MEM:1.5% RSS:16MB THREADS:3 | SYS_CPU:0.3% SYS_MEM:5.2% SYS_AVAIL:970MB SYS_LOAD:0.07 DISK:4%
+[2026-08-20 18:50:50] PROCESS:agent-leak-app PID:7643 STATE:S CPU:0% MEM:1.5% RSS:16MB THREADS:3 | SYS_CPU:0.9% SYS_MEM:5.1% SYS_AVAIL:970MB SYS_LOAD:0.07 DISK:4%
+[2026-08-20 18:50:52] PROCESS:agent-leak-app PID:7643 STATE:S CPU:0% MEM:1.5% RSS:16MB THREADS:3 | SYS_CPU:0.4% SYS_MEM:5.1% SYS_AVAIL:970MB SYS_LOAD:0.06 DISK:4%
+[2026-08-20 18:50:54] PROCESS:agent-leak-app PID:7643 STATE:S CPU:0% MEM:1.5% RSS:16MB THREADS:3 | SYS_CPU:0.2% SYS_MEM:5.1% SYS_AVAIL:971MB SYS_LOAD:0.06 DISK:4%
 ```
 
 `CPU:0% / RSS:16MB / THREADS:3` 이 **한 자리도 변하지 않고** 108초간 반복된다.
-`/proc/5682/status` 최종 확인도 같다.
+`/proc/7643/status` 최종 확인도 같다.
 
 ```text
 State:   S (sleeping)
-VmRSS:   16572 kB
+VmRSS:   16524 kB
 Threads: 3
 ```
 
+**시스템 쪽도 조용하다.** `SYS_CPU` 0.2~0.9%, `SYS_MEM` 5.1% 고정, `SYS_AVAIL` 970MB 유지.
+게다가 `SYS_LOAD`(1분 부하 평균)는 교착이 시작된 직후 0.25에서 관측 종료 시점 0.06까지
+**전반적으로 내려간다.** 교착된 프로세스는 실행 큐에 아무것도 올리지 않으므로
+부하 평균이 시간이 갈수록 0에 수렴한다 — 관제 대시보드만 보면
+"장애가 끝나고 시스템이 안정화되는 중"으로 읽히는 그림이다. 실제로는 그 반대다.
+
 대조를 위해 같은 앱의 정상 동작 구간(`evidence/deadlock-after/monitor.log`)을 보면
-RSS가 316MB → 466MB로 계속 움직인다. **"수치가 변하지 않는 것" 자체가 이상 신호**임을
-같은 프로세스의 두 실행으로 확인할 수 있다.
+프로세스 RSS는 41MB → 441MB로, 시스템 가용 메모리는 946MB → 545MB로 계속 움직인다.
+**"수치가 변하지 않는 것" 자체가 이상 신호**임을 같은 프로세스의 두 실행으로 확인할 수 있다.
 
 ### 2-5. 로그 정체 시간 계측
 
@@ -178,7 +185,7 @@ RSS가 316MB → 466MB로 계속 움직인다. **"수치가 변하지 않는 것
 - Worker-Thread-1: `Shared_Memory_A` → `Socket_Pool_B` 순서로 요구
 - Worker-Thread-2: `Socket_Pool_B` → `Shared_Memory_A` 순서로 요구
 
-두 스레드가 각자 첫 락을 잡는 데 성공한 뒤(로그상 같은 밀리초 `18:31:42,180`에 둘 다 `LOCK ACQUIRED`)
+두 스레드가 각자 첫 락을 잡는 데 성공한 뒤(로그상 3ms 차로 둘 다 `LOCK ACQUIRED`)
 두 번째 락을 요구하는 순간, 상대가 이미 쥐고 있어 둘 다 대기 상태로 들어간다.
 **타이밍 문제가 아니라 순서 설계 자체의 결함**이므로 재현율이 100%다.
 
@@ -216,13 +223,16 @@ Coffman의 네 조건이 모두 성립한다. 증거와 함께 대조한다.
 
 | 헬스체크 방식 | 이 장애를 잡는가 | 근거 |
 | --- | --- | --- |
-| PID 존재 확인 | **못 잡는다** | 2-2, PID 5682 계속 생존 |
+| PID 존재 확인 | **못 잡는다** | 2-2, PID 7643 계속 생존 |
 | 포트 LISTEN 확인 | **못 잡는다** | 2-2, 15034 계속 LISTEN |
-| CPU/메모리 임계 알람 | **못 잡는다** | 2-4, CPU 0% / RSS 고정 |
+| 프로세스 CPU/메모리 임계 알람 | **못 잡는다** | 2-4, CPU 0% / RSS 16MB 고정 |
+| 시스템 전체 부하 알람 | **못 잡는다 (오히려 역효과)** | 2-4, `SYS_CPU` 0.2~0.9% · `SYS_LOAD`가 0.25→0.06으로 **하락**해 "안정화"로 오독된다 |
 | **로그 진행 여부(정체 시간)** | **잡는다** | 2-5, 108초 정체 |
-| **자원 수치의 변화량(Δ)** | **잡는다** | 2-4, 108초간 Δ=0 |
+| **자원 수치의 변화량(Δ)** | **잡는다** | 2-4, 108초간 프로세스·시스템 양쪽 모두 Δ=0 |
 
 즉 **"수치가 얼마인가"가 아니라 "수치가 변하고 있는가"** 를 봐야 한다.
+관제 범위를 시스템 전체로 넓혀도 소용없다는 점이 중요하다 — 교착은 **자원을 안 쓰는 장애**라
+범위를 넓힐수록 오히려 더 조용해 보인다.
 그래서 이번 미션의 `monitor.sh`는 절대값과 함께 `STATE`·`THREADS`를 남기고,
 관측 스크립트는 로그 파일 크기의 정체 시간을 별도로 계측하도록 만들었다.
 
@@ -249,8 +259,10 @@ export MULTI_THREAD_ENABLE=false    # 1/0, yes/no 도 허용되나 명시적으�
 | 실행되는 워커 | `AgentWorker` (Worker-Thread-1/2) | `MemoryWorker` + `CpuWorker` |
 | 마지막 로그 | `WAITING for [...]... (Status: BLOCKED)` 에서 정지 | 관측 종료까지 계속 기록 |
 | **로그 정체 시간** | **108초 / 120초 (90%)** | **0초** |
-| CPU (관제) | **교착 이후 0% 고정** (59틱 중 기동 시점 1틱만 1.0%) | 0~5.0% 변동 |
-| RSS (관제) | **16MB 고정** | 41MB → 516MB → (회수) 16MB → 466MB (정상 워크로드) |
+| CPU (관제, 프로세스) | **교착 이후 0% 고정** | 0~2.5% 변동 |
+| CPU (관제, 시스템) | 0.2~0.9% + `SYS_LOAD` 0.25→0.06 **하락** | 0.4~0.8% |
+| RSS (관제, 프로세스) | **16MB 고정** | 41MB → 441MB (회수 1회 포함) |
+| 가용 메모리 (시스템) | **971MB 고정** | 946MB → 545MB (프로세스 증가분과 일치) |
 | 스레드 CPU 시간 | 워커 2개 모두 `TIME+ 0:00.00` | 해당 스레드 없음 |
 | 프로세스 상태 | 살아 있으나 **무응답** | 살아 있고 **정상 처리 중** |
 | 증거 | `evidence/deadlock-before/` | `evidence/deadlock-after/` |
@@ -258,12 +270,12 @@ export MULTI_THREAD_ENABLE=false    # 1/0, yes/no 도 허용되나 명시적으�
 `deadlock-after`의 로그는 관측 120초 내내 진행된다.
 
 ```text
-2026-08-19 18:35:30,482 [INFO] [MemoryWorker] Current Heap: 400MB
-2026-08-19 18:35:31,598 [INFO] [CpuWorker] Current Load: 12.57%
-2026-08-19 18:35:33,524 [INFO] [MemoryWorker] Current Heap: 425MB
-2026-08-19 18:35:34,728 [INFO] [CpuWorker] Current Load: 21.75%
-2026-08-19 18:35:36,584 [INFO] [MemoryWorker] Current Heap: 450MB
-2026-08-19 18:35:37,879 [INFO] [CpuWorker] Current Load: 22.25%
+2026-08-20 18:52:50,074 [INFO] [CpuWorker] Cooldown complete (5.00%). Resuming load increase...
+2026-08-20 18:52:51,082 [INFO] [CpuWorker] Current Load: 5.00%
+2026-08-20 18:52:52,746 [INFO] [MemoryWorker] Current Heap: 400MB
+2026-08-20 18:52:54,216 [INFO] [CpuWorker] Current Load: 5.68%
+2026-08-20 18:52:55,787 [INFO] [MemoryWorker] Current Heap: 425MB
+2026-08-20 18:52:57,350 [INFO] [CpuWorker] Current Load: 10.86%
 ```
 
 **교착은 완전히 재현되지 않았다(0/1).** 정체 시간 108초 → 0초가 가장 명확한 지표다.
