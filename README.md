@@ -40,6 +40,9 @@ Issue 본문은 `reports/` 의 마크다운과 같은 내용이며, 증거로 �
    잡아낸 유일한 신호는 **"수치가 변하지 않는다"** 와 **"로그가 늘지 않는다"** 였다.
    → [03-deadlock.md §3-4](reports/03-deadlock.md)
 
+조사 과정에서 **재현 대상인 장애와 별개로 앱 자체의 설계 모순**도 관측되었다.
+별도 문서로 정리했다 → [**DESIGN-ISSUES.md**](DESIGN-ISSUES.md)
+
 세 장애의 종료 방식이 서로 다르다는 점도 진단의 핵심 단서였다.
 
 | 장애 | 종료 코드 | 시그널 | 의미 |
@@ -54,6 +57,7 @@ Issue 본문은 `reports/` 의 마크다운과 같은 내용이며, 증거로 �
 
 ```
 codyssey1-2/
+├── DESIGN-ISSUES.md        앱 자체의 설계 모순 분석 (재현 대상 장애와 별개)
 ├── Dockerfile              Ubuntu 22.04 + 관측 도구(procps/psmisc/iproute2/bc)
 ├── run.sh                  이미지 빌드 + 컨테이너 기동 (+ --all 로 전체 시나리오 실행)
 ├── scripts/
