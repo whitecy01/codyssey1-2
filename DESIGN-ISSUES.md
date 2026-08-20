@@ -129,5 +129,135 @@ MEMORY_LIMIT > 256  →  [ OK ]       →  MemoryWorker: 캐시 회수
 
 ---
 
-*이 문서는 작성 중이다. 관측된 다른 모순들(설정 허용 범위와 안전장치 임계의 불일치,
-경고를 띄우고도 부트를 통과시키는 문제, 자체 종료에 SIGKILL을 사용하는 문제)은 이어서 정리한다.*
+## 오류 2. 부트 검사가 허용하는 값의 절반이 "반드시 죽는 설정"이다
+
+### 관측 사실
+
+`CPU_MAX_OCCUPY` 는 **워커가 부하를 끌어올릴 목표치**로 동작한다.
+설정한 숫자를 향해 부하가 상승하며, 그 값에 도달하면 꺾어서 내려온다.
+
+`CPU_MAX_OCCUPY=30` — [`evidence/cpu-after/agent_app.log`](evidence/cpu-after/agent_app.log)
+
+```text
+[CpuWorker] Peak reached (30.00%). Starting cooldown...
+[CpuWorker] Cooldown complete (5.00%). Resuming load increase...
+[CpuWorker] Peak reached (30.00%). Starting cooldown...
+```
+
+120초 관측 동안 최대 부하는 **정확히 30.00%** 였고, 이 상승–쿨다운 사이클이 3회 반복되었다.
+
+`CPU_MAX_OCCUPY=100` — [`evidence/cpu-before/agent_app.log`](evidence/cpu-before/agent_app.log)
+
+```text
+[CpuWorker] Current Load: 5.00%
+[CpuWorker] Current Load: 23.34%
+[CpuWorker] Current Load: 40.58%
+[CpuWorker] Current Load: 45.95%
+[CpuWorker] Current Load: 52.48%
+[CRITICAL] [CpuWorker] CPU Threshold Violated! (52.48%).
+```
+
+100을 향해 올라가던 중 **52.48%에서 종료**되었다.
+([`evidence/cpu-before/app-stdout.log`](evidence/cpu-before/app-stdout.log))
+
+```text
+>>> [SYSTEM] WATCHDOG: INITIATING EMERGENCY ABORT (SIGTERM) <<<
+Script done on 2026-08-20 19:53:40+09:00 [COMMAND_EXIT_CODE="143"]
+```
+
+### 무엇이 모순인가
+
+Watchdog 의 종료 기준은 `CPU_MAX_OCCUPY` 가 아니라 **50% 고정**이다.
+부트 배너의 `Recommend Under 50%` 와 일치하며, 별도 실행에서 50.05% 에 위반 판정이 난 것으로
+보아 램프 속도와 무관하게 임계선 자체는 50% 로 고정되어 있다.
+
+그런데 부트 검사가 허용하는 `CPU_MAX_OCCUPY` 범위는 **10~100** 이다.
+
+| 설정값 | 워커가 도달하는 부하 | 50% 임계 | 결과 |
+| --- | --- | --- | --- |
+| 10 ~ 50 | 설정값에서 꺾임 | 못 닿음 | 생존 |
+| **51 ~ 100** | 설정값을 향해 상승 | **반드시 통과** | **반드시 종료** |
+
+경계값은 별도 실행으로 확인했다. `CPU_MAX_OCCUPY=50` 은 부트 판정이 `[ OK ]` 이고,
+부하가 **정확히 50.00% 에서 꺾여** 쿨다운으로 들어가며 위반이 발생하지 않는다.
+
+```text
+ [ CPU    ] Limit: 50%  		[ OK ]
+[CpuWorker] Current Load: 43.06%
+[CpuWorker] Peak reached (50.00%). Starting cooldown...
+[CpuWorker] Current Load: 50.00%
+[CpuWorker] Current Load: 40.26%      ← 위반 없이 하강
+```
+
+즉 종료 조건은 `부하 > 50` 이며, 50 자체는 안전하다.
+(위반이 관측된 값은 50.05% 와 52.48% 로 모두 50 초과였다.)
+
+**허용 범위의 절반이 "설정하는 순간 종료가 확정되는 값"인데도 부트 검사를 통과한다.**
+우발적 부하 급증이 아니라, 목표치를 안전 임계보다 높게 잡을 수 있도록 허용한 **구성 오류**다.
+
+### 곁가지 — 두 배너의 경계 해석이 서로 다르다
+
+위 경계 실험에서 드러난 부수적 문제다. 두 변수의 권장 문구가 같은 형식인데
+**포함/제외가 반대**다.
+
+| 배너 문구 | 경계값 판정 | 해석 |
+| --- | --- | --- |
+| `Recommend Over 256MB` | `MEMORY_LIMIT=256` → **`WARNING`** | 256 **제외** (초과만 OK) |
+| `Recommend Under 50%` | `CPU_MAX_OCCUPY=50` → **`OK`** | 50 **포함** (이하면 OK) |
+
+`Over` 는 경계를 빼고 `Under` 는 경계를 넣는다. 문구만 보고는 어느 쪽인지 알 수 없어,
+두 변수 모두 경계값을 직접 실행해 본 뒤에야 확정할 수 있었다.
+`Recommend >= 257MB`, `Recommend <= 50%` 처럼 부등호로 적으면 사라질 모호함이다.
+
+### 추론
+
+두 숫자가 서로를 참조하지 않는 것으로 보인다.
+
+```
+CPU_MAX_OCCUPY  = 사용자 지정 (부트 검사 통과 범위 10~100)
+Watchdog 임계   = 코드에 고정 (50)
+```
+
+임계를 `CPU_MAX_OCCUPY` 에서 파생시켰다면(예: 설정값의 일정 배수) 목표치가 임계를 넘는
+조합 자체가 성립할 수 없다. 설정값 검증 범위와 런타임 안전장치가 각각 독립적으로
+정해진 것이 원인으로 추정된다.
+
+### 운영상의 영향
+
+**조치 방향이 메모리와 정반대**라는 점이 실무적으로 혼란을 만든다.
+
+| 변수 | 장애를 막으려면 |
+| --- | --- |
+| `MEMORY_LIMIT` | **올린다** (50 → 512) |
+| `CPU_MAX_OCCUPY` | **내린다** (100 → 30) |
+
+이름이 둘 다 "한도(LIMIT/MAX)"처럼 읽히지만, `MEMORY_LIMIT` 은 넘으면 안 되는 **상한**이고
+`CPU_MAX_OCCUPY` 는 도달하려 애쓰는 **목표치**다. 성격이 반대인 두 값에 비슷한 이름이
+붙어 있어, "한도니까 넉넉히 잡자"는 판단이 CPU 쪽에서는 곧바로 종료로 이어진다.
+
+또한 이 조치는 **처리량을 깎아 장애를 회피한 것**이다. 워커가 30% 를 상한으로 일하므로,
+이 값이 실제 처리 용량과 연동된다면 성능이 그만큼 떨어진다.
+
+### 제안
+
+1. **Watchdog 임계를 `CPU_MAX_OCCUPY` 에서 파생시킨다.** 두 값이 독립적인 한,
+   목표치를 임계보다 높게 잡는 조합은 언제든 다시 만들어질 수 있다.
+2. 임계를 고정으로 유지해야 한다면, **부트 검사의 허용 범위를 임계에 맞춘다.**
+   현재는 검증 범위(10~100)와 안전 임계(50)가 어긋나 있다.
+   범위를 10~50 으로 좁히면 "죽는 설정"을 애초에 입력할 수 없다.
+3. `CPU_MAX_OCCUPY >= 50` 을 **경고가 아니라 기동 실패로 처리한다.**
+   현재는 `WARNING` 만 띄우고 `All Boot Checks Passed!` 로 통과시킨다.
+4. 변수 이름을 성격에 맞게 바꾼다. `CPU_MAX_OCCUPY` 는 상한이 아니라 목표치이므로
+   `CPU_TARGET_LOAD` 에 가깝다.
+5. 권장 범위를 `Over`/`Under` 대신 **부등호로 표기**해 경계 포함 여부를 명확히 한다.
+
+### 관련 증거
+
+- [`evidence/cpu-before/`](evidence/cpu-before) — `CPU_MAX_OCCUPY=100`, 52.48% 에서 Watchdog SIGTERM, 35초 생존
+- [`evidence/cpu-after/`](evidence/cpu-after) — `CPU_MAX_OCCUPY=30`, 최대 30.00%, 임계 위반 0회, 120초 생존
+- 리포트: [Issue #2](https://github.com/whitecy01/codyssey1-2/issues/2) / [reports/02-cpu.md](reports/02-cpu.md)
+
+---
+
+*이 문서는 작성 중이다. 관측된 다른 모순들(경고를 띄우고도 부트를 통과시키는 문제,
+자체 종료에 SIGKILL 을 사용하는 문제)은 이어서 정리한다.*
