@@ -1,0 +1,54 @@
+=== CASE: deadlock-before ===
+시작       : 2026-08-19 18:31:34
+실행 계정  : agent-admin (uid=1000, non-root)
+MEMORY_LIMIT        = 512
+CPU_MAX_OCCUPY      = 30
+MULTI_THREAD_ENABLE = true
+
+APP PID    : 5682
+
+종료       : 2026-08-19 18:33:34
+관측 시간  : 120s
+프로세스   : yes (관측 종료 시점까지 생존)
+로그 정체  : 108s (마지막 기록 이후)
+
+=== 터미널 출력 마지막 15줄 ===
+==================================================
+
+2026-08-19 18:31:37,142 [WARNING] [AgentWorker] Initializing concurrent transaction processors...
+2026-08-19 18:31:37,143 [WARNING] [System] CAUTION: Strict resource locking is enabled.
+2026-08-19 18:31:42,178 [INFO] [Worker-Thread-1] Process Started. Attempting to lock [Shared_Memory_A]...
+2026-08-19 18:31:42,180 [INFO] [AgentWorker][Worker-Thread-2] Process Started. Attempting to lock [Socket_Pool_B]...
+2026-08-19 18:31:42,180 [INFO] [AgentWorker][Worker-Thread-1] LOCK ACQUIRED: [Shared_Memory_A]. (Holding...)
+2026-08-19 18:31:42,180 [INFO] [AgentWorker] Waiting for worker threads to complete transactions...
+2026-08-19 18:31:42,180 [INFO] [AgentWorker][Worker-Thread-2] LOCK ACQUIRED: [Socket_Pool_B]. (Holding...)
+2026-08-19 18:31:42,181 [INFO] [AgentWorker][Worker-Thread-1] Processing critical data in Memory A...
+2026-08-19 18:31:42,181 [INFO] [AgentWorker][Worker-Thread-2] Establishing network connections in Pool B...
+2026-08-19 18:31:44,194 [INFO] [AgentWorker][Worker-Thread-2] Need resource [Shared_Memory_A] to write logs.
+2026-08-19 18:31:44,195 [INFO] [AgentWorker][Worker-Thread-1] Need resource [Socket_Pool_B] to finish job.
+2026-08-19 18:31:44,196 [INFO] [AgentWorker][Worker-Thread-2] WAITING for [Shared_Memory_A]... (Status: BLOCKED)
+2026-08-19 18:31:44,196 [INFO] [AgentWorker][Worker-Thread-1] WAITING for [Socket_Pool_B]... (Status: BLOCKED)
+
+=== 앱 로그(agent_app.log) 마지막 10줄 ===
+2026-08-19 18:31:42,180 [INFO] [AgentWorker][Worker-Thread-2] Process Started. Attempting to lock [Socket_Pool_B]...
+2026-08-19 18:31:42,180 [INFO] [AgentWorker][Worker-Thread-1] LOCK ACQUIRED: [Shared_Memory_A]. (Holding...)
+2026-08-19 18:31:42,180 [INFO] [AgentWorker] Waiting for worker threads to complete transactions...
+2026-08-19 18:31:42,180 [INFO] [AgentWorker][Worker-Thread-2] LOCK ACQUIRED: [Socket_Pool_B]. (Holding...)
+2026-08-19 18:31:42,181 [INFO] [AgentWorker][Worker-Thread-1] Processing critical data in Memory A...
+2026-08-19 18:31:42,181 [INFO] [AgentWorker][Worker-Thread-2] Establishing network connections in Pool B...
+2026-08-19 18:31:44,194 [INFO] [AgentWorker][Worker-Thread-2] Need resource [Shared_Memory_A] to write logs.
+2026-08-19 18:31:44,195 [INFO] [AgentWorker][Worker-Thread-1] Need resource [Socket_Pool_B] to finish job.
+2026-08-19 18:31:44,196 [INFO] [AgentWorker][Worker-Thread-2] WAITING for [Shared_Memory_A]... (Status: BLOCKED)
+2026-08-19 18:31:44,196 [INFO] [AgentWorker][Worker-Thread-1] WAITING for [Socket_Pool_B]... (Status: BLOCKED)
+
+=== 관제 로그(monitor.log) 마지막 10줄 ===
+[2026-08-19 18:33:16] PROCESS:agent-leak-app PID:5682 STATE:S CPU:0% MEM:1.5% RSS:16MB THREADS:3 DISK:4%
+[2026-08-19 18:33:18] PROCESS:agent-leak-app PID:5682 STATE:S CPU:0% MEM:1.5% RSS:16MB THREADS:3 DISK:4%
+[2026-08-19 18:33:20] PROCESS:agent-leak-app PID:5682 STATE:S CPU:0% MEM:1.5% RSS:16MB THREADS:3 DISK:4%
+[2026-08-19 18:33:22] PROCESS:agent-leak-app PID:5682 STATE:S CPU:0% MEM:1.5% RSS:16MB THREADS:3 DISK:4%
+[2026-08-19 18:33:24] PROCESS:agent-leak-app PID:5682 STATE:S CPU:0% MEM:1.5% RSS:16MB THREADS:3 DISK:4%
+[2026-08-19 18:33:26] PROCESS:agent-leak-app PID:5682 STATE:S CPU:0% MEM:1.5% RSS:16MB THREADS:3 DISK:4%
+[2026-08-19 18:33:28] PROCESS:agent-leak-app PID:5682 STATE:S CPU:0% MEM:1.5% RSS:16MB THREADS:3 DISK:4%
+[2026-08-19 18:33:30] PROCESS:agent-leak-app PID:5682 STATE:S CPU:0% MEM:1.5% RSS:16MB THREADS:3 DISK:4%
+[2026-08-19 18:33:32] PROCESS:agent-leak-app PID:5682 STATE:S CPU:0% MEM:1.5% RSS:16MB THREADS:3 DISK:4%
+[2026-08-19 18:33:34] PROCESS:agent-leak-app PID:5682 STATE:S CPU:0% MEM:1.5% RSS:16MB THREADS:3 DISK:4%

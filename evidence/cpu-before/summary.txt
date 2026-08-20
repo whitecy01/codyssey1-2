@@ -1,0 +1,54 @@
+=== CASE: cpu-before ===
+시작       : 2026-08-19 18:29:04
+실행 계정  : agent-admin (uid=1000, non-root)
+MEMORY_LIMIT        = 512
+CPU_MAX_OCCUPY      = 100
+MULTI_THREAD_ENABLE = false
+
+APP PID    : 3587
+
+종료       : 2026-08-19 18:29:32
+관측 시간  : 28s
+프로세스   : no (종료됨)
+로그 정체  : 2s (마지막 기록 이후)
+
+=== 터미널 출력 마지막 15줄 ===
+2026-08-19 18:29:06,450 [INFO] [CpuWorker] Current Load: 5.00%
+2026-08-19 18:29:09,580 [INFO] [CpuWorker] Current Load: 13.93%
+2026-08-19 18:29:12,711 [INFO] [CpuWorker] Current Load: 17.14%
+2026-08-19 18:29:15,838 [INFO] [CpuWorker] Current Load: 19.30%
+2026-08-19 18:29:18,954 [INFO] [CpuWorker] Current Load: 27.59%
+2026-08-19 18:29:22,067 [INFO] [CpuWorker] Current Load: 37.58%
+2026-08-19 18:29:25,186 [INFO] [CpuWorker] Current Load: 43.09%
+2026-08-19 18:29:28,299 [INFO] [CpuWorker] Current Load: 49.24%
+2026-08-19 18:29:31,420 [INFO] [CpuWorker] Current Load: 50.05%
+2026-08-19 18:29:31,523 [CRITICAL] [CpuWorker] CPU Threshold Violated! (50.05%).
+
+>>> [SYSTEM] WATCHDOG: INITIATING EMERGENCY ABORT (SIGTERM) <<<
+
+
+Script done on 2026-08-19 18:29:31+09:00 [COMMAND_EXIT_CODE="143"]
+
+=== 앱 로그(agent_app.log) 마지막 10줄 ===
+2026-08-19 18:29:06,450 [INFO] [CpuWorker] Current Load: 5.00%
+2026-08-19 18:29:09,580 [INFO] [CpuWorker] Current Load: 13.93%
+2026-08-19 18:29:12,711 [INFO] [CpuWorker] Current Load: 17.14%
+2026-08-19 18:29:15,838 [INFO] [CpuWorker] Current Load: 19.30%
+2026-08-19 18:29:18,954 [INFO] [CpuWorker] Current Load: 27.59%
+2026-08-19 18:29:22,067 [INFO] [CpuWorker] Current Load: 37.58%
+2026-08-19 18:29:25,186 [INFO] [CpuWorker] Current Load: 43.09%
+2026-08-19 18:29:28,299 [INFO] [CpuWorker] Current Load: 49.24%
+2026-08-19 18:29:31,420 [INFO] [CpuWorker] Current Load: 50.05%
+2026-08-19 18:29:31,523 [CRITICAL] [CpuWorker] CPU Threshold Violated! (50.05%).
+
+=== 관제 로그(monitor.log) 마지막 10줄 ===
+[2026-08-19 18:29:12] PROCESS:agent-leak-app PID:3587 STATE:S CPU:0% MEM:1.5% RSS:16MB THREADS:1 DISK:4%
+[2026-08-19 18:29:14] PROCESS:agent-leak-app PID:3587 STATE:S CPU:1.0% MEM:1.5% RSS:16MB THREADS:1 DISK:4%
+[2026-08-19 18:29:16] PROCESS:agent-leak-app PID:3587 STATE:S CPU:1.0% MEM:1.5% RSS:16MB THREADS:1 DISK:4%
+[2026-08-19 18:29:18] PROCESS:agent-leak-app PID:3587 STATE:S CPU:0% MEM:1.5% RSS:16MB THREADS:1 DISK:4%
+[2026-08-19 18:29:20] PROCESS:agent-leak-app PID:3587 STATE:S CPU:1.5% MEM:1.5% RSS:16MB THREADS:1 DISK:4%
+[2026-08-19 18:29:22] PROCESS:agent-leak-app PID:3587 STATE:S CPU:2.0% MEM:1.5% RSS:16MB THREADS:1 DISK:4%
+[2026-08-19 18:29:24] PROCESS:agent-leak-app PID:3587 STATE:S CPU:0% MEM:1.5% RSS:16MB THREADS:1 DISK:4%
+[2026-08-19 18:29:26] PROCESS:agent-leak-app PID:3587 STATE:S CPU:2.0% MEM:1.5% RSS:16MB THREADS:1 DISK:4%
+[2026-08-19 18:29:28] PROCESS:agent-leak-app PID:3587 STATE:S CPU:3.0% MEM:1.5% RSS:16MB THREADS:1 DISK:4%
+[2026-08-19 18:29:30] PROCESS:agent-leak-app PID:3587 STATE:S CPU:0% MEM:1.5% RSS:16MB THREADS:1 DISK:4%

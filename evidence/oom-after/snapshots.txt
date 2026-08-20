@@ -1,0 +1,467 @@
+----- snapshot t+2s (2026-08-19 18:36:15) -----
+$ ps -ef | grep agent-leak-app
+root      9084  9069  0 18:36 ?        00:00:00 su agent-admin -c  export AGENT_HOME=/home/agent-admin/agent-app export AGENT_PORT=15034 export AGENT_UPLOAD_DIR=/home/agent-admin/agent-app/upload_files export AGENT_KEY_PATH=/home/agent-admin/agent-app/api_keys export AGENT_LOG_DIR=/var/log/agent-app export MEMORY_LIMIT=512 export CPU_MAX_OCCUPY=30 export MULTI_THREAD_ENABLE=false cd /home/agent-admin/agent-app exec script -qfec ./agent-leak-app /evidence/oom-after/app-stdout.log 
+agent-a+  9090  9084  0 18:36 ?        00:00:00 script -qfec ./agent-leak-app /evidence/oom-after/app-stdout.log
+agent-a+  9091  9090  5 18:36 pts/0    00:00:00 ./agent-leak-app
+agent-a+  9092  9091  3 18:36 pts/0    00:00:00 ./agent-leak-app
+root      9104  9069  0 18:36 ?        00:00:00 /bin/bash /opt/scripts/monitor.sh -i 2 -d 300 -o /evidence/oom-after/monitor.log -p agent-leak-app -P 9092
+
+$ ps -o pid,ppid,stat,%cpu,%mem,rss,nlwp,etime,comm -p 9092
+  PID  PPID STAT %CPU %MEM   RSS NLWP     ELAPSED COMMAND
+ 9092  9091 SN+   3.5  0.2 16564    1       00:02 agent-leak-app
+
+$ ps -L -o pid,tid,stat,%cpu,wchan:20,comm -p 9092
+  PID   TID STAT %CPU WCHAN                COMMAND
+ 9092  9092 SN+   3.5 -                    agent-leak-app
+
+$ top -H -b -n1 -p 9092
+MiB Swap:   1024.0 total,   1024.0 free,      0.0 used.   5531.4 avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+ 9092 agent-a+  30  10   22144  16564   8500 S   0.0   0.2   0:00.07 agent-lea+
+
+$ ss -tulnp | grep 15034
+tcp   LISTEN 0      1            0.0.0.0:15034      0.0.0.0:*          
+
+----- snapshot t+23s (2026-08-19 18:36:36) -----
+$ ps -ef | grep agent-leak-app
+root      9084  9069  0 18:36 ?        00:00:00 su agent-admin -c  export AGENT_HOME=/home/agent-admin/agent-app export AGENT_PORT=15034 export AGENT_UPLOAD_DIR=/home/agent-admin/agent-app/upload_files export AGENT_KEY_PATH=/home/agent-admin/agent-app/api_keys export AGENT_LOG_DIR=/var/log/agent-app export MEMORY_LIMIT=512 export CPU_MAX_OCCUPY=30 export MULTI_THREAD_ENABLE=false cd /home/agent-admin/agent-app exec script -qfec ./agent-leak-app /evidence/oom-after/app-stdout.log 
+agent-a+  9090  9084  0 18:36 ?        00:00:00 script -qfec ./agent-leak-app /evidence/oom-after/app-stdout.log
+agent-a+  9091  9090  0 18:36 pts/0    00:00:00 ./agent-leak-app
+agent-a+  9092  9091  1 18:36 pts/0    00:00:00 ./agent-leak-app
+root      9104  9069  0 18:36 ?        00:00:00 /bin/bash /opt/scripts/monitor.sh -i 2 -d 300 -o /evidence/oom-after/monitor.log -p agent-leak-app -P 9092
+
+$ ps -o pid,ppid,stat,%cpu,%mem,rss,nlwp,etime,comm -p 9092
+  PID  PPID STAT %CPU %MEM   RSS NLWP     ELAPSED COMMAND
+ 9092  9091 SNl+  1.8  2.4 195952   3       00:22 agent-leak-app
+
+$ ps -L -o pid,tid,stat,%cpu,wchan:20,comm -p 9092
+  PID   TID STAT %CPU WCHAN                COMMAND
+ 9092  9092 SNl+  0.3 -                    agent-leak-app
+ 9092  9130 SNl+  0.8 -                    agent-leak-app
+ 9092  9131 SNl+  0.7 -                    agent-leak-app
+
+$ top -H -b -n1 -p 9092
+MiB Swap:   1024.0 total,   1024.0 free,      0.0 used.   5365.9 avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+ 9092 agent-a+  30  10  349980 195952   8500 S   0.0   2.4   0:00.08 agent-lea+
+ 9130 agent-a+  30  10  349980 195952   8500 S   0.0   2.4   0:00.16 agent-lea+
+ 9131 agent-a+  30  10  349980 195952   8500 S   0.0   2.4   0:00.14 agent-lea+
+
+$ ss -tulnp | grep 15034
+tcp   LISTEN 0      1            0.0.0.0:15034      0.0.0.0:*          
+
+----- snapshot t+43s (2026-08-19 18:36:56) -----
+$ ps -ef | grep agent-leak-app
+root      9084  9069  0 18:36 ?        00:00:00 su agent-admin -c  export AGENT_HOME=/home/agent-admin/agent-app export AGENT_PORT=15034 export AGENT_UPLOAD_DIR=/home/agent-admin/agent-app/upload_files export AGENT_KEY_PATH=/home/agent-admin/agent-app/api_keys export AGENT_LOG_DIR=/var/log/agent-app export MEMORY_LIMIT=512 export CPU_MAX_OCCUPY=30 export MULTI_THREAD_ENABLE=false cd /home/agent-admin/agent-app exec script -qfec ./agent-leak-app /evidence/oom-after/app-stdout.log 
+agent-a+  9090  9084  0 18:36 ?        00:00:00 script -qfec ./agent-leak-app /evidence/oom-after/app-stdout.log
+agent-a+  9091  9090  0 18:36 pts/0    00:00:00 ./agent-leak-app
+agent-a+  9092  9091  1 18:36 pts/0    00:00:00 ./agent-leak-app
+root      9104  9069  0 18:36 ?        00:00:00 /bin/bash /opt/scripts/monitor.sh -i 2 -d 300 -o /evidence/oom-after/monitor.log -p agent-leak-app -P 9092
+
+$ ps -o pid,ppid,stat,%cpu,%mem,rss,nlwp,etime,comm -p 9092
+  PID  PPID STAT %CPU %MEM   RSS NLWP     ELAPSED COMMAND
+ 9092  9091 SNl+  1.7  4.6 375180   3       00:43 agent-leak-app
+
+$ ps -L -o pid,tid,stat,%cpu,wchan:20,comm -p 9092
+  PID   TID STAT %CPU WCHAN                COMMAND
+ 9092  9092 SNl+  0.1 -                    agent-leak-app
+ 9092  9130 SNl+  0.9 -                    agent-leak-app
+ 9092  9131 SNl+  0.6 -                    agent-leak-app
+
+$ top -H -b -n1 -p 9092
+MiB Swap:   1024.0 total,   1024.0 free,      0.0 used.   5219.8 avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+ 9092 agent-a+  30  10  529208 375180   8500 S   0.0   4.7   0:00.08 agent-lea+
+ 9130 agent-a+  30  10  529208 375180   8500 S   0.0   4.7   0:00.38 agent-lea+
+ 9131 agent-a+  30  10  529208 375180   8500 S   0.0   4.7   0:00.27 agent-lea+
+
+$ ss -tulnp | grep 15034
+tcp   LISTEN 0      1            0.0.0.0:15034      0.0.0.0:*          
+
+----- snapshot t+63s (2026-08-19 18:37:16) -----
+$ ps -ef | grep agent-leak-app
+root      9084  9069  0 18:36 ?        00:00:00 su agent-admin -c  export AGENT_HOME=/home/agent-admin/agent-app export AGENT_PORT=15034 export AGENT_UPLOAD_DIR=/home/agent-admin/agent-app/upload_files export AGENT_KEY_PATH=/home/agent-admin/agent-app/api_keys export AGENT_LOG_DIR=/var/log/agent-app export MEMORY_LIMIT=512 export CPU_MAX_OCCUPY=30 export MULTI_THREAD_ENABLE=false cd /home/agent-admin/agent-app exec script -qfec ./agent-leak-app /evidence/oom-after/app-stdout.log 
+agent-a+  9090  9084  0 18:36 ?        00:00:00 script -qfec ./agent-leak-app /evidence/oom-after/app-stdout.log
+agent-a+  9091  9090  0 18:36 pts/0    00:00:00 ./agent-leak-app
+agent-a+  9092  9091  1 18:36 pts/0    00:00:01 ./agent-leak-app
+root      9104  9069  0 18:36 ?        00:00:00 /bin/bash /opt/scripts/monitor.sh -i 2 -d 300 -o /evidence/oom-after/monitor.log -p agent-leak-app -P 9092
+
+$ ps -o pid,ppid,stat,%cpu,%mem,rss,nlwp,etime,comm -p 9092
+  PID  PPID STAT %CPU %MEM   RSS NLWP     ELAPSED COMMAND
+ 9092  9091 SNl+  1.6  6.5 528800   3       01:03 agent-leak-app
+
+$ ps -L -o pid,tid,stat,%cpu,wchan:20,comm -p 9092
+  PID   TID STAT %CPU WCHAN                COMMAND
+ 9092  9092 SNl+  0.1 -                    agent-leak-app
+ 9092  9130 SNl+  0.8 -                    agent-leak-app
+ 9092  9131 SNl+  0.7 -                    agent-leak-app
+
+$ top -H -b -n1 -p 9092
+MiB Swap:   1024.0 total,   1024.0 free,      0.0 used.   5078.0 avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+ 9092 agent-a+  30  10  682832 528800   8500 S   0.0   6.6   0:00.08 agent-lea+
+ 9130 agent-a+  30  10  682832 528800   8500 S   0.0   6.6   0:00.49 agent-lea+
+ 9131 agent-a+  30  10  682832 528800   8500 S   0.0   6.6   0:00.44 agent-lea+
+
+$ ss -tulnp | grep 15034
+tcp   LISTEN 0      1            0.0.0.0:15034      0.0.0.0:*          
+
+----- snapshot t+83s (2026-08-19 18:37:36) -----
+$ ps -ef | grep agent-leak-app
+root      9084  9069  0 18:36 ?        00:00:00 su agent-admin -c  export AGENT_HOME=/home/agent-admin/agent-app export AGENT_PORT=15034 export AGENT_UPLOAD_DIR=/home/agent-admin/agent-app/upload_files export AGENT_KEY_PATH=/home/agent-admin/agent-app/api_keys export AGENT_LOG_DIR=/var/log/agent-app export MEMORY_LIMIT=512 export CPU_MAX_OCCUPY=30 export MULTI_THREAD_ENABLE=false cd /home/agent-admin/agent-app exec script -qfec ./agent-leak-app /evidence/oom-after/app-stdout.log 
+agent-a+  9090  9084  0 18:36 ?        00:00:00 script -qfec ./agent-leak-app /evidence/oom-after/app-stdout.log
+agent-a+  9091  9090  0 18:36 pts/0    00:00:00 ./agent-leak-app
+agent-a+  9092  9091  1 18:36 pts/0    00:00:01 ./agent-leak-app
+root      9104  9069  0 18:36 ?        00:00:00 /bin/bash /opt/scripts/monitor.sh -i 2 -d 300 -o /evidence/oom-after/monitor.log -p agent-leak-app -P 9092
+
+$ ps -o pid,ppid,stat,%cpu,%mem,rss,nlwp,etime,comm -p 9092
+  PID  PPID STAT %CPU %MEM   RSS NLWP     ELAPSED COMMAND
+ 9092  9091 SNl+  1.5  1.8 144732   3       01:23 agent-leak-app
+
+$ ps -L -o pid,tid,stat,%cpu,wchan:20,comm -p 9092
+  PID   TID STAT %CPU WCHAN                COMMAND
+ 9092  9092 SNl+  0.0 -                    agent-leak-app
+ 9092  9130 SNl+  0.8 -                    agent-leak-app
+ 9092  9131 SNl+  0.6 -                    agent-leak-app
+
+$ top -H -b -n1 -p 9092
+MiB Swap:   1024.0 total,   1024.0 free,      0.0 used.   5459.5 avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+ 9092 agent-a+  30  10  301824 144732   8500 S   0.0   1.8   0:00.08 agent-lea+
+ 9130 agent-a+  30  10  301824 144732   8500 S   0.0   1.8   0:00.64 agent-lea+
+ 9131 agent-a+  30  10  301824 144732   8500 S   0.0   1.8   0:00.55 agent-lea+
+
+$ ss -tulnp | grep 15034
+tcp   LISTEN 0      1            0.0.0.0:15034      0.0.0.0:*          
+
+----- snapshot t+104s (2026-08-19 18:37:57) -----
+$ ps -ef | grep agent-leak-app
+root      9084  9069  0 18:36 ?        00:00:00 su agent-admin -c  export AGENT_HOME=/home/agent-admin/agent-app export AGENT_PORT=15034 export AGENT_UPLOAD_DIR=/home/agent-admin/agent-app/upload_files export AGENT_KEY_PATH=/home/agent-admin/agent-app/api_keys export AGENT_LOG_DIR=/var/log/agent-app export MEMORY_LIMIT=512 export CPU_MAX_OCCUPY=30 export MULTI_THREAD_ENABLE=false cd /home/agent-admin/agent-app exec script -qfec ./agent-leak-app /evidence/oom-after/app-stdout.log 
+agent-a+  9090  9084  0 18:36 ?        00:00:00 script -qfec ./agent-leak-app /evidence/oom-after/app-stdout.log
+agent-a+  9091  9090  0 18:36 pts/0    00:00:00 ./agent-leak-app
+agent-a+  9092  9091  1 18:36 pts/0    00:00:01 ./agent-leak-app
+root      9104  9069  0 18:36 ?        00:00:00 /bin/bash /opt/scripts/monitor.sh -i 2 -d 300 -o /evidence/oom-after/monitor.log -p agent-leak-app -P 9092
+
+$ ps -o pid,ppid,stat,%cpu,%mem,rss,nlwp,etime,comm -p 9092
+  PID  PPID STAT %CPU %MEM   RSS NLWP     ELAPSED COMMAND
+ 9092  9091 SNl+  1.5  4.0 323944   3       01:43 agent-leak-app
+
+$ ps -L -o pid,tid,stat,%cpu,wchan:20,comm -p 9092
+  PID   TID STAT %CPU WCHAN                COMMAND
+ 9092  9092 SNl+  0.0 -                    agent-leak-app
+ 9092  9130 SNl+  0.8 -                    agent-leak-app
+ 9092  9131 SNl+  0.7 -                    agent-leak-app
+
+$ top -H -b -n1 -p 9092
+MiB Swap:   1024.0 total,   1024.0 free,      0.0 used.   5263.3 avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+ 9092 agent-a+  30  10  498432 323944   8500 S   0.0   4.0   0:00.08 agent-lea+
+ 9130 agent-a+  30  10  498432 323944   8500 S   0.0   4.0   0:00.83 agent-lea+
+ 9131 agent-a+  30  10  498432 323944   8500 S   0.0   4.0   0:00.71 agent-lea+
+
+$ ss -tulnp | grep 15034
+tcp   LISTEN 0      1            0.0.0.0:15034      0.0.0.0:*          
+
+----- snapshot t+124s (2026-08-19 18:38:17) -----
+$ ps -ef | grep agent-leak-app
+root      9084  9069  0 18:36 ?        00:00:00 su agent-admin -c  export AGENT_HOME=/home/agent-admin/agent-app export AGENT_PORT=15034 export AGENT_UPLOAD_DIR=/home/agent-admin/agent-app/upload_files export AGENT_KEY_PATH=/home/agent-admin/agent-app/api_keys export AGENT_LOG_DIR=/var/log/agent-app export MEMORY_LIMIT=512 export CPU_MAX_OCCUPY=30 export MULTI_THREAD_ENABLE=false cd /home/agent-admin/agent-app exec script -qfec ./agent-leak-app /evidence/oom-after/app-stdout.log 
+agent-a+  9090  9084  0 18:36 ?        00:00:00 script -qfec ./agent-leak-app /evidence/oom-after/app-stdout.log
+agent-a+  9091  9090  0 18:36 pts/0    00:00:00 ./agent-leak-app
+agent-a+  9092  9091  1 18:36 pts/0    00:00:01 ./agent-leak-app
+root      9104  9069  0 18:36 ?        00:00:00 /bin/bash /opt/scripts/monitor.sh -i 2 -d 300 -o /evidence/oom-after/monitor.log -p agent-leak-app -P 9092
+
+$ ps -o pid,ppid,stat,%cpu,%mem,rss,nlwp,etime,comm -p 9092
+  PID  PPID STAT %CPU %MEM   RSS NLWP     ELAPSED COMMAND
+ 9092  9091 SNl+  1.5  6.2 503228   3       02:04 agent-leak-app
+
+$ ps -L -o pid,tid,stat,%cpu,wchan:20,comm -p 9092
+  PID   TID STAT %CPU WCHAN                COMMAND
+ 9092  9092 SNl+  0.0 -                    agent-leak-app
+ 9092  9130 SNl+  0.8 -                    agent-leak-app
+ 9092  9131 SNl+  0.6 -                    agent-leak-app
+
+$ top -H -b -n1 -p 9092
+MiB Swap:   1024.0 total,   1024.0 free,      0.0 used.   5095.6 avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+ 9092 agent-a+  30  10  760576 503228   8500 S   0.0   6.3   0:00.08 agent-lea+
+ 9130 agent-a+  30  10  760576 503228   8500 S   0.0   6.3   0:01.02 agent-lea+
+ 9131 agent-a+  30  10  760576 503228   8500 S   0.0   6.3   0:00.81 agent-lea+
+
+$ ss -tulnp | grep 15034
+tcp   LISTEN 0      1            0.0.0.0:15034      0.0.0.0:*          
+
+----- snapshot t+144s (2026-08-19 18:38:37) -----
+$ ps -ef | grep agent-leak-app
+root      9084  9069  0 18:36 ?        00:00:00 su agent-admin -c  export AGENT_HOME=/home/agent-admin/agent-app export AGENT_PORT=15034 export AGENT_UPLOAD_DIR=/home/agent-admin/agent-app/upload_files export AGENT_KEY_PATH=/home/agent-admin/agent-app/api_keys export AGENT_LOG_DIR=/var/log/agent-app export MEMORY_LIMIT=512 export CPU_MAX_OCCUPY=30 export MULTI_THREAD_ENABLE=false cd /home/agent-admin/agent-app exec script -qfec ./agent-leak-app /evidence/oom-after/app-stdout.log 
+agent-a+  9090  9084  0 18:36 ?        00:00:00 script -qfec ./agent-leak-app /evidence/oom-after/app-stdout.log
+agent-a+  9091  9090  0 18:36 pts/0    00:00:00 ./agent-leak-app
+agent-a+  9092  9091  1 18:36 pts/0    00:00:02 ./agent-leak-app
+root      9104  9069  0 18:36 ?        00:00:00 /bin/bash /opt/scripts/monitor.sh -i 2 -d 300 -o /evidence/oom-after/monitor.log -p agent-leak-app -P 9092
+
+$ ps -o pid,ppid,stat,%cpu,%mem,rss,nlwp,etime,comm -p 9092
+  PID  PPID STAT %CPU %MEM   RSS NLWP     ELAPSED COMMAND
+ 9092  9091 SNl+  1.6  1.4 119204   3       02:24 agent-leak-app
+
+$ ps -L -o pid,tid,stat,%cpu,wchan:20,comm -p 9092
+  PID   TID STAT %CPU WCHAN                COMMAND
+ 9092  9092 SNl+  0.0 -                    agent-leak-app
+ 9092  9130 SNl+  0.8 -                    agent-leak-app
+ 9092  9131 SNl+  0.7 -                    agent-leak-app
+
+$ top -H -b -n1 -p 9092
+MiB Swap:   1024.0 total,   1024.0 free,      0.0 used.   5461.4 avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+ 9092 agent-a+  30  10  236288 119204   8500 S   0.0   1.5   0:00.08 agent-lea+
+ 9130 agent-a+  30  10  236288 119204   8500 S   0.0   1.5   0:01.20 agent-lea+
+ 9131 agent-a+  30  10  236288 119204   8500 S   0.0   1.5   0:01.02 agent-lea+
+
+$ ss -tulnp | grep 15034
+tcp   LISTEN 0      1            0.0.0.0:15034      0.0.0.0:*          
+
+----- snapshot t+164s (2026-08-19 18:38:57) -----
+$ ps -ef | grep agent-leak-app
+root      9084  9069  0 18:36 ?        00:00:00 su agent-admin -c  export AGENT_HOME=/home/agent-admin/agent-app export AGENT_PORT=15034 export AGENT_UPLOAD_DIR=/home/agent-admin/agent-app/upload_files export AGENT_KEY_PATH=/home/agent-admin/agent-app/api_keys export AGENT_LOG_DIR=/var/log/agent-app export MEMORY_LIMIT=512 export CPU_MAX_OCCUPY=30 export MULTI_THREAD_ENABLE=false cd /home/agent-admin/agent-app exec script -qfec ./agent-leak-app /evidence/oom-after/app-stdout.log 
+agent-a+  9090  9084  0 18:36 ?        00:00:00 script -qfec ./agent-leak-app /evidence/oom-after/app-stdout.log
+agent-a+  9091  9090  0 18:36 pts/0    00:00:00 ./agent-leak-app
+agent-a+  9092  9091  1 18:36 pts/0    00:00:02 ./agent-leak-app
+root      9104  9069  0 18:36 ?        00:00:00 /bin/bash /opt/scripts/monitor.sh -i 2 -d 300 -o /evidence/oom-after/monitor.log -p agent-leak-app -P 9092
+
+$ ps -o pid,ppid,stat,%cpu,%mem,rss,nlwp,etime,comm -p 9092
+  PID  PPID STAT %CPU %MEM   RSS NLWP     ELAPSED COMMAND
+ 9092  9091 SNl+  1.5  3.3 272688   3       02:44 agent-leak-app
+
+$ ps -L -o pid,tid,stat,%cpu,wchan:20,comm -p 9092
+  PID   TID STAT %CPU WCHAN                COMMAND
+ 9092  9092 SNl+  0.0 -                    agent-leak-app
+ 9092  9130 SNl+  0.8 -                    agent-leak-app
+ 9092  9131 SNl+  0.7 -                    agent-leak-app
+
+$ top -H -b -n1 -p 9092
+MiB Swap:   1024.0 total,   1024.0 free,      0.0 used.   5324.8 avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+ 9092 agent-a+  30  10  432896 272688   8500 S   0.0   3.4   0:00.08 agent-lea+
+ 9130 agent-a+  30  10  432896 272688   8500 S   0.0   3.4   0:01.36 agent-lea+
+ 9131 agent-a+  30  10  432896 272688   8500 S   0.0   3.4   0:01.13 agent-lea+
+
+$ ss -tulnp | grep 15034
+tcp   LISTEN 0      1            0.0.0.0:15034      0.0.0.0:*          
+
+----- snapshot t+185s (2026-08-19 18:39:18) -----
+$ ps -ef | grep agent-leak-app
+root      9084  9069  0 18:36 ?        00:00:00 su agent-admin -c  export AGENT_HOME=/home/agent-admin/agent-app export AGENT_PORT=15034 export AGENT_UPLOAD_DIR=/home/agent-admin/agent-app/upload_files export AGENT_KEY_PATH=/home/agent-admin/agent-app/api_keys export AGENT_LOG_DIR=/var/log/agent-app export MEMORY_LIMIT=512 export CPU_MAX_OCCUPY=30 export MULTI_THREAD_ENABLE=false cd /home/agent-admin/agent-app exec script -qfec ./agent-leak-app /evidence/oom-after/app-stdout.log 
+agent-a+  9090  9084  0 18:36 ?        00:00:00 script -qfec ./agent-leak-app /evidence/oom-after/app-stdout.log
+agent-a+  9091  9090  0 18:36 pts/0    00:00:00 ./agent-leak-app
+agent-a+  9092  9091  1 18:36 pts/0    00:00:02 ./agent-leak-app
+root      9104  9069  0 18:36 ?        00:00:00 /bin/bash /opt/scripts/monitor.sh -i 2 -d 300 -o /evidence/oom-after/monitor.log -p agent-leak-app -P 9092
+
+$ ps -o pid,ppid,stat,%cpu,%mem,rss,nlwp,etime,comm -p 9092
+  PID  PPID STAT %CPU %MEM   RSS NLWP     ELAPSED COMMAND
+ 9092  9091 SNl+  1.6  5.6 452020   3       03:04 agent-leak-app
+
+$ ps -L -o pid,tid,stat,%cpu,wchan:20,comm -p 9092
+  PID   TID STAT %CPU WCHAN                COMMAND
+ 9092  9092 SNl+  0.0 -                    agent-leak-app
+ 9092  9130 SNl+  0.8 -                    agent-leak-app
+ 9092  9131 SNl+  0.7 -                    agent-leak-app
+
+$ top -H -b -n1 -p 9092
+MiB Swap:   1024.0 total,   1024.0 free,      0.0 used.   5142.7 avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+ 9092 agent-a+  30  10  695040 452020   8500 S   0.0   5.6   0:00.08 agent-lea+
+ 9130 agent-a+  30  10  695040 452020   8500 S   0.0   5.6   0:01.57 agent-lea+
+ 9131 agent-a+  30  10  695040 452020   8500 S   0.0   5.6   0:01.30 agent-lea+
+
+$ ss -tulnp | grep 15034
+tcp   LISTEN 0      1            0.0.0.0:15034      0.0.0.0:*          
+
+----- snapshot t+205s (2026-08-19 18:39:38) -----
+$ ps -ef | grep agent-leak-app
+root      9084  9069  0 18:36 ?        00:00:00 su agent-admin -c  export AGENT_HOME=/home/agent-admin/agent-app export AGENT_PORT=15034 export AGENT_UPLOAD_DIR=/home/agent-admin/agent-app/upload_files export AGENT_KEY_PATH=/home/agent-admin/agent-app/api_keys export AGENT_LOG_DIR=/var/log/agent-app export MEMORY_LIMIT=512 export CPU_MAX_OCCUPY=30 export MULTI_THREAD_ENABLE=false cd /home/agent-admin/agent-app exec script -qfec ./agent-leak-app /evidence/oom-after/app-stdout.log 
+agent-a+  9090  9084  0 18:36 ?        00:00:00 script -qfec ./agent-leak-app /evidence/oom-after/app-stdout.log
+agent-a+  9091  9090  0 18:36 pts/0    00:00:00 ./agent-leak-app
+agent-a+  9092  9091  1 18:36 pts/0    00:00:03 ./agent-leak-app
+root      9104  9069  0 18:36 ?        00:00:00 /bin/bash /opt/scripts/monitor.sh -i 2 -d 300 -o /evidence/oom-after/monitor.log -p agent-leak-app -P 9092
+
+$ ps -o pid,ppid,stat,%cpu,%mem,rss,nlwp,etime,comm -p 9092
+  PID  PPID STAT %CPU %MEM   RSS NLWP     ELAPSED COMMAND
+ 9092  9091 SNl+  1.5  1.4 119192   3       03:25 agent-leak-app
+
+$ ps -L -o pid,tid,stat,%cpu,wchan:20,comm -p 9092
+  PID   TID STAT %CPU WCHAN                COMMAND
+ 9092  9092 SNl+  0.0 -                    agent-leak-app
+ 9092  9130 SNl+  0.8 -                    agent-leak-app
+ 9092  9131 SNl+  0.6 -                    agent-leak-app
+
+$ top -H -b -n1 -p 9092
+MiB Swap:   1024.0 total,   1024.0 free,      0.0 used.   5465.7 avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+ 9092 agent-a+  30  10  236288 119192   8500 S   0.0   1.5   0:00.08 agent-lea+
+ 9130 agent-a+  30  10  236288 119192   8500 S   0.0   1.5   0:01.75 agent-lea+
+ 9131 agent-a+  30  10  236288 119192   8500 S   0.0   1.5   0:01.40 agent-lea+
+
+$ ss -tulnp | grep 15034
+tcp   LISTEN 0      1            0.0.0.0:15034      0.0.0.0:*          
+
+----- snapshot t+225s (2026-08-19 18:39:58) -----
+$ ps -ef | grep agent-leak-app
+root      9084  9069  0 18:36 ?        00:00:00 su agent-admin -c  export AGENT_HOME=/home/agent-admin/agent-app export AGENT_PORT=15034 export AGENT_UPLOAD_DIR=/home/agent-admin/agent-app/upload_files export AGENT_KEY_PATH=/home/agent-admin/agent-app/api_keys export AGENT_LOG_DIR=/var/log/agent-app export MEMORY_LIMIT=512 export CPU_MAX_OCCUPY=30 export MULTI_THREAD_ENABLE=false cd /home/agent-admin/agent-app exec script -qfec ./agent-leak-app /evidence/oom-after/app-stdout.log 
+agent-a+  9090  9084  0 18:36 ?        00:00:00 script -qfec ./agent-leak-app /evidence/oom-after/app-stdout.log
+agent-a+  9091  9090  0 18:36 pts/0    00:00:00 ./agent-leak-app
+agent-a+  9092  9091  1 18:36 pts/0    00:00:03 ./agent-leak-app
+root      9104  9069  0 18:36 ?        00:00:00 /bin/bash /opt/scripts/monitor.sh -i 2 -d 300 -o /evidence/oom-after/monitor.log -p agent-leak-app -P 9092
+
+$ ps -o pid,ppid,stat,%cpu,%mem,rss,nlwp,etime,comm -p 9092
+  PID  PPID STAT %CPU %MEM   RSS NLWP     ELAPSED COMMAND
+ 9092  9091 SNl+  1.5  3.0 247212   3       03:45 agent-leak-app
+
+$ ps -L -o pid,tid,stat,%cpu,wchan:20,comm -p 9092
+  PID   TID STAT %CPU WCHAN                COMMAND
+ 9092  9092 SNl+  0.0 -                    agent-leak-app
+ 9092  9130 SNl+  0.8 -                    agent-leak-app
+ 9092  9131 SNl+  0.7 -                    agent-leak-app
+
+$ top -H -b -n1 -p 9092
+MiB Swap:   1024.0 total,   1024.0 free,      0.0 used.   5344.2 avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+ 9092 agent-a+  30  10  432896 247212   8500 S   0.0   3.1   0:00.08 agent-lea+
+ 9130 agent-a+  30  10  432896 247212   8500 S   0.0   3.1   0:01.87 agent-lea+
+ 9131 agent-a+  30  10  432896 247212   8500 S   0.0   3.1   0:01.62 agent-lea+
+
+$ ss -tulnp | grep 15034
+tcp   LISTEN 0      1            0.0.0.0:15034      0.0.0.0:*          
+
+----- snapshot t+245s (2026-08-19 18:40:18) -----
+$ ps -ef | grep agent-leak-app
+root      9084  9069  0 18:36 ?        00:00:00 su agent-admin -c  export AGENT_HOME=/home/agent-admin/agent-app export AGENT_PORT=15034 export AGENT_UPLOAD_DIR=/home/agent-admin/agent-app/upload_files export AGENT_KEY_PATH=/home/agent-admin/agent-app/api_keys export AGENT_LOG_DIR=/var/log/agent-app export MEMORY_LIMIT=512 export CPU_MAX_OCCUPY=30 export MULTI_THREAD_ENABLE=false cd /home/agent-admin/agent-app exec script -qfec ./agent-leak-app /evidence/oom-after/app-stdout.log 
+agent-a+  9090  9084  0 18:36 ?        00:00:00 script -qfec ./agent-leak-app /evidence/oom-after/app-stdout.log
+agent-a+  9091  9090  0 18:36 pts/0    00:00:00 ./agent-leak-app
+agent-a+  9092  9091  1 18:36 pts/0    00:00:03 ./agent-leak-app
+root      9104  9069  0 18:36 ?        00:00:00 /bin/bash /opt/scripts/monitor.sh -i 2 -d 300 -o /evidence/oom-after/monitor.log -p agent-leak-app -P 9092
+
+$ ps -o pid,ppid,stat,%cpu,%mem,rss,nlwp,etime,comm -p 9092
+  PID  PPID STAT %CPU %MEM   RSS NLWP     ELAPSED COMMAND
+ 9092  9091 SNl+  1.5  4.9 400812   3       04:05 agent-leak-app
+
+$ ps -L -o pid,tid,stat,%cpu,wchan:20,comm -p 9092
+  PID   TID STAT %CPU WCHAN                COMMAND
+ 9092  9092 SNl+  0.0 -                    agent-leak-app
+ 9092  9130 SNl+  0.8 -                    agent-leak-app
+ 9092  9131 SNl+  0.6 -                    agent-leak-app
+
+$ top -H -b -n1 -p 9092
+MiB Swap:   1024.0 total,   1024.0 free,      0.0 used.   5196.6 avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+ 9092 agent-a+  30  10  629504 400812   8500 S   0.0   5.0   0:00.08 agent-lea+
+ 9130 agent-a+  30  10  629504 400812   8500 S   0.0   5.0   0:02.06 agent-lea+
+ 9131 agent-a+  30  10  629504 400812   8500 S   0.0   5.0   0:01.68 agent-lea+
+
+$ ss -tulnp | grep 15034
+tcp   LISTEN 0      1            0.0.0.0:15034      0.0.0.0:*          
+
+----- snapshot t+266s (2026-08-19 18:40:39) -----
+$ ps -ef | grep agent-leak-app
+root      9084  9069  0 18:36 ?        00:00:00 su agent-admin -c  export AGENT_HOME=/home/agent-admin/agent-app export AGENT_PORT=15034 export AGENT_UPLOAD_DIR=/home/agent-admin/agent-app/upload_files export AGENT_KEY_PATH=/home/agent-admin/agent-app/api_keys export AGENT_LOG_DIR=/var/log/agent-app export MEMORY_LIMIT=512 export CPU_MAX_OCCUPY=30 export MULTI_THREAD_ENABLE=false cd /home/agent-admin/agent-app exec script -qfec ./agent-leak-app /evidence/oom-after/app-stdout.log 
+agent-a+  9090  9084  0 18:36 ?        00:00:00 script -qfec ./agent-leak-app /evidence/oom-after/app-stdout.log
+agent-a+  9091  9090  0 18:36 pts/0    00:00:00 ./agent-leak-app
+agent-a+  9092  9091  1 18:36 pts/0    00:00:04 ./agent-leak-app
+root      9104  9069  0 18:36 ?        00:00:00 /bin/bash /opt/scripts/monitor.sh -i 2 -d 300 -o /evidence/oom-after/monitor.log -p agent-leak-app -P 9092
+
+$ ps -o pid,ppid,stat,%cpu,%mem,rss,nlwp,etime,comm -p 9092
+  PID  PPID STAT %CPU %MEM   RSS NLWP     ELAPSED COMMAND
+ 9092  9091 SNl+  1.5  1.4 119192   3       04:25 agent-leak-app
+
+$ ps -L -o pid,tid,stat,%cpu,wchan:20,comm -p 9092
+  PID   TID STAT %CPU WCHAN                COMMAND
+ 9092  9092 SNl+  0.0 -                    agent-leak-app
+ 9092  9130 SNl+  0.8 -                    agent-leak-app
+ 9092  9131 SNl+  0.7 -                    agent-leak-app
+
+$ top -H -b -n1 -p 9092
+MiB Swap:   1024.0 total,   1024.0 free,      0.0 used.   5466.8 avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+ 9092 agent-a+  30  10  236288 119192   8500 S   0.0   1.5   0:00.08 agent-lea+
+ 9130 agent-a+  30  10  236288 119192   8500 S   0.0   1.5   0:02.27 agent-lea+
+ 9131 agent-a+  30  10  236288 119192   8500 S   0.0   1.5   0:01.86 agent-lea+
+
+$ ss -tulnp | grep 15034
+tcp   LISTEN 0      1            0.0.0.0:15034      0.0.0.0:*          
+
+----- snapshot t+286s (2026-08-19 18:40:59) -----
+$ ps -ef | grep agent-leak-app
+root      9084  9069  0 18:36 ?        00:00:00 su agent-admin -c  export AGENT_HOME=/home/agent-admin/agent-app export AGENT_PORT=15034 export AGENT_UPLOAD_DIR=/home/agent-admin/agent-app/upload_files export AGENT_KEY_PATH=/home/agent-admin/agent-app/api_keys export AGENT_LOG_DIR=/var/log/agent-app export MEMORY_LIMIT=512 export CPU_MAX_OCCUPY=30 export MULTI_THREAD_ENABLE=false cd /home/agent-admin/agent-app exec script -qfec ./agent-leak-app /evidence/oom-after/app-stdout.log 
+agent-a+  9090  9084  0 18:36 ?        00:00:00 script -qfec ./agent-leak-app /evidence/oom-after/app-stdout.log
+agent-a+  9091  9090  0 18:36 pts/0    00:00:00 ./agent-leak-app
+agent-a+  9092  9091  1 18:36 pts/0    00:00:04 ./agent-leak-app
+root      9104  9069  0 18:36 ?        00:00:00 /bin/bash /opt/scripts/monitor.sh -i 2 -d 300 -o /evidence/oom-after/monitor.log -p agent-leak-app -P 9092
+
+$ ps -o pid,ppid,stat,%cpu,%mem,rss,nlwp,etime,comm -p 9092
+  PID  PPID STAT %CPU %MEM   RSS NLWP     ELAPSED COMMAND
+ 9092  9091 SNl+  1.5  2.4 196008   3       04:46 agent-leak-app
+
+$ ps -L -o pid,tid,stat,%cpu,wchan:20,comm -p 9092
+  PID   TID STAT %CPU WCHAN                COMMAND
+ 9092  9092 SNl+  0.0 -                    agent-leak-app
+ 9092  9130 SNl+  0.8 -                    agent-leak-app
+ 9092  9131 SNl+  0.6 -                    agent-leak-app
+
+$ top -H -b -n1 -p 9092
+MiB Swap:   1024.0 total,   1024.0 free,      0.0 used.   5391.7 avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+ 9092 agent-a+  30  10  367360 196008   8500 S   0.0   2.4   0:00.08 agent-lea+
+ 9130 agent-a+  30  10  367360 196008   8500 S   0.0   2.4   0:02.45 agent-lea+
+ 9131 agent-a+  30  10  367360 196008   8500 S   0.0   2.4   0:01.95 agent-lea+
+
+$ ss -tulnp | grep 15034
+tcp   LISTEN 0      1            0.0.0.0:15034      0.0.0.0:*          
+
+----- snapshot t+300s (2026-08-19 18:41:13) -----
+$ ps -ef | grep agent-leak-app
+root      9084  9069  0 18:36 ?        00:00:00 su agent-admin -c  export AGENT_HOME=/home/agent-admin/agent-app export AGENT_PORT=15034 export AGENT_UPLOAD_DIR=/home/agent-admin/agent-app/upload_files export AGENT_KEY_PATH=/home/agent-admin/agent-app/api_keys export AGENT_LOG_DIR=/var/log/agent-app export MEMORY_LIMIT=512 export CPU_MAX_OCCUPY=30 export MULTI_THREAD_ENABLE=false cd /home/agent-admin/agent-app exec script -qfec ./agent-leak-app /evidence/oom-after/app-stdout.log 
+agent-a+  9090  9084  0 18:36 ?        00:00:00 script -qfec ./agent-leak-app /evidence/oom-after/app-stdout.log
+agent-a+  9091  9090  0 18:36 pts/0    00:00:00 ./agent-leak-app
+agent-a+  9092  9091  1 18:36 pts/0    00:00:04 ./agent-leak-app
+root      9104  9069  0 18:36 ?        00:00:00 /bin/bash /opt/scripts/monitor.sh -i 2 -d 300 -o /evidence/oom-after/monitor.log -p agent-leak-app -P 9092
+
+$ ps -o pid,ppid,stat,%cpu,%mem,rss,nlwp,etime,comm -p 9092
+  PID  PPID STAT %CPU %MEM   RSS NLWP     ELAPSED COMMAND
+ 9092  9091 SNl+  1.5  4.0 324008   3       05:00 agent-leak-app
+
+$ ps -L -o pid,tid,stat,%cpu,wchan:20,comm -p 9092
+  PID   TID STAT %CPU WCHAN                COMMAND
+ 9092  9092 SNl+  0.0 -                    agent-leak-app
+ 9092  9130 SNl+  0.8 -                    agent-leak-app
+ 9092  9131 SNl+  0.7 -                    agent-leak-app
+
+$ top -H -b -n1 -p 9092
+MiB Swap:   1024.0 total,   1024.0 free,      0.0 used.   5271.1 avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+ 9092 agent-a+  30  10  498432 324008   8500 S   0.0   4.0   0:00.08 agent-lea+
+ 9130 agent-a+  30  10  498432 324008   8500 S   0.0   4.0   0:02.56 agent-lea+
+ 9131 agent-a+  30  10  498432 324008   8500 S   0.0   4.0   0:02.09 agent-lea+
+
+$ ss -tulnp | grep 15034
+tcp   LISTEN 0      1            0.0.0.0:15034      0.0.0.0:*          
+
+----- FINAL (무응답/생존 판정) -----
+$ cat /proc/9092/status | egrep 'State|Threads|VmRSS'
+State:	S (sleeping)
+VmRSS:	  324008 kB
+Threads:	3
+
+앱 로그 정체 시간: 0s (마지막 기록 이후 갱신 없음)

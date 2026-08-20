@@ -1,0 +1,46 @@
+Script started on 2026-08-19 18:29:04+09:00 [<not executed on terminal>]
+>>> Starting Agent Boot Sequence...
+[1/6] Checking User Account               [OK]
+   ... Running as service user 'agent-admin' (uid=1000)
+[2/6] Verifying Environment Variables     [OK]
+   ... All required Envs correct
+[3/6] Checking Required Files             [OK]
+   ... Verified 'secret.key' with correct key string.
+[4/6] Checking Port Availability          [OK]
+   ... Port 15034 is available.
+[5/6] Verifying Log Permission            [OK]
+   ... Log directory is writable: /var/log/agent-app
+[6/6] Verifying Mission Environment       [OK]
+   ... MEMORY_LIMIT=512MB, CPU_MAX_OCCUPY=100%, MULTI_THREAD_ENABLE=False
+------------------------------------------------------------
+All Boot Checks Passed!
+Agent READY
+2026-08-19 18:29:04,436 [INFO] [SafetyGuard] Process priority lowered (nice=10).
+2026-08-19 18:29:04,437 [INFO] Agent listening at port 15034
+
+==================================================
+ [ Agent Initiate ] Resource Check 
+==================================================
+ [ MEMORY ] Limit: 512MB 		[ OK ]
+ [ CPU    ] Limit: 100%  		[ WARNING: Recommend Under 50% ]
+ [ THREAD ] Concurrency: False 		[ OK ]
+--------------------------------------------------
+ >>> SYSTEM STATUS: STABLE. STARTING WORKLOAD MONITORING...
+==================================================
+
+2026-08-19 18:29:06,449 [INFO] [CpuWorker] Started. Maximum CPU Limit: 100%
+2026-08-19 18:29:06,450 [INFO] [CpuWorker] Current Load: 5.00%
+2026-08-19 18:29:09,580 [INFO] [CpuWorker] Current Load: 13.93%
+2026-08-19 18:29:12,711 [INFO] [CpuWorker] Current Load: 17.14%
+2026-08-19 18:29:15,838 [INFO] [CpuWorker] Current Load: 19.30%
+2026-08-19 18:29:18,954 [INFO] [CpuWorker] Current Load: 27.59%
+2026-08-19 18:29:22,067 [INFO] [CpuWorker] Current Load: 37.58%
+2026-08-19 18:29:25,186 [INFO] [CpuWorker] Current Load: 43.09%
+2026-08-19 18:29:28,299 [INFO] [CpuWorker] Current Load: 49.24%
+2026-08-19 18:29:31,420 [INFO] [CpuWorker] Current Load: 50.05%
+2026-08-19 18:29:31,523 [CRITICAL] [CpuWorker] CPU Threshold Violated! (50.05%).
+
+>>> [SYSTEM] WATCHDOG: INITIATING EMERGENCY ABORT (SIGTERM) <<<
+
+
+Script done on 2026-08-19 18:29:31+09:00 [COMMAND_EXIT_CODE="143"]

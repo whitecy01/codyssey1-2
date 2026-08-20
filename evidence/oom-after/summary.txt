@@ -1,0 +1,54 @@
+=== CASE: oom-after ===
+시작       : 2026-08-19 18:36:13
+실행 계정  : agent-admin (uid=1000, non-root)
+MEMORY_LIMIT        = 512
+CPU_MAX_OCCUPY      = 30
+MULTI_THREAD_ENABLE = false
+
+APP PID    : 9092
+
+종료       : 2026-08-19 18:41:13
+관측 시간  : 300s
+프로세스   : yes (관측 종료 시점까지 생존)
+로그 정체  : 0s (마지막 기록 이후)
+
+=== 터미널 출력 마지막 15줄 ===
+2026-08-19 18:40:54,783 [INFO] [CpuWorker] Current Load: 16.34%
+2026-08-19 18:40:55,355 [INFO] [MemoryWorker] Current Heap: 150MB
+2026-08-19 18:40:57,908 [INFO] [CpuWorker] Current Load: 25.39%
+2026-08-19 18:40:58,387 [INFO] [MemoryWorker] Current Heap: 175MB
+2026-08-19 18:41:01,026 [INFO] [CpuWorker] Current Load: 28.47%
+2026-08-19 18:41:01,419 [INFO] [MemoryWorker] Current Heap: 200MB
+2026-08-19 18:41:03,149 [INFO] [CpuWorker] Peak reached (30.00%). Starting cooldown...
+2026-08-19 18:41:04,159 [INFO] [CpuWorker] Current Load: 30.00%
+2026-08-19 18:41:04,448 [INFO] [MemoryWorker] Current Heap: 225MB
+2026-08-19 18:41:07,285 [INFO] [CpuWorker] Current Load: 28.04%
+2026-08-19 18:41:07,507 [INFO] [MemoryWorker] Current Heap: 250MB
+2026-08-19 18:41:10,418 [INFO] [CpuWorker] Current Load: 23.94%
+2026-08-19 18:41:10,539 [INFO] [MemoryWorker] Current Heap: 275MB
+2026-08-19 18:41:13,548 [INFO] [CpuWorker] Current Load: 23.70%
+2026-08-19 18:41:13,579 [INFO] [MemoryWorker] Current Heap: 300MB
+
+=== 앱 로그(agent_app.log) 마지막 10줄 ===
+2026-08-19 18:41:01,419 [INFO] [MemoryWorker] Current Heap: 200MB
+2026-08-19 18:41:03,149 [INFO] [CpuWorker] Peak reached (30.00%). Starting cooldown...
+2026-08-19 18:41:04,159 [INFO] [CpuWorker] Current Load: 30.00%
+2026-08-19 18:41:04,448 [INFO] [MemoryWorker] Current Heap: 225MB
+2026-08-19 18:41:07,285 [INFO] [CpuWorker] Current Load: 28.04%
+2026-08-19 18:41:07,507 [INFO] [MemoryWorker] Current Heap: 250MB
+2026-08-19 18:41:10,418 [INFO] [CpuWorker] Current Load: 23.94%
+2026-08-19 18:41:10,539 [INFO] [MemoryWorker] Current Heap: 275MB
+2026-08-19 18:41:13,548 [INFO] [CpuWorker] Current Load: 23.70%
+2026-08-19 18:41:13,579 [INFO] [MemoryWorker] Current Heap: 300MB
+
+=== 관제 로그(monitor.log) 마지막 10줄 ===
+[2026-08-19 18:40:55] PROCESS:agent-leak-app PID:9092 STATE:S CPU:4.0% MEM:16.2% RSS:166MB THREADS:3 DISK:4%
+[2026-08-19 18:40:57] PROCESS:agent-leak-app PID:9092 STATE:S CPU:0% MEM:16.2% RSS:166MB THREADS:3 DISK:4%
+[2026-08-19 18:40:59] PROCESS:agent-leak-app PID:9092 STATE:S CPU:2.0% MEM:18.6% RSS:191MB THREADS:3 DISK:4%
+[2026-08-19 18:41:01] PROCESS:agent-leak-app PID:9092 STATE:S CPU:2.0% MEM:21.1% RSS:216MB THREADS:3 DISK:4%
+[2026-08-19 18:41:03] PROCESS:agent-leak-app PID:9092 STATE:S CPU:0% MEM:21.1% RSS:216MB THREADS:3 DISK:4%
+[2026-08-19 18:41:05] PROCESS:agent-leak-app PID:9092 STATE:S CPU:3.0% MEM:23.5% RSS:241MB THREADS:3 DISK:4%
+[2026-08-19 18:41:07] PROCESS:agent-leak-app PID:9092 STATE:S CPU:4.0% MEM:26.0% RSS:266MB THREADS:3 DISK:4%
+[2026-08-19 18:41:09] PROCESS:agent-leak-app PID:9092 STATE:S CPU:0% MEM:26.0% RSS:266MB THREADS:3 DISK:4%
+[2026-08-19 18:41:11] PROCESS:agent-leak-app PID:9092 STATE:S CPU:2.0% MEM:28.4% RSS:291MB THREADS:3 DISK:4%
+[2026-08-19 18:41:13] PROCESS:agent-leak-app PID:9092 STATE:S CPU:1.5% MEM:30.8% RSS:316MB THREADS:3 DISK:4%

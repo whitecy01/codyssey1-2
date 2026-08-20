@@ -1,0 +1,206 @@
+----- snapshot t+2s (2026-08-19 18:31:36) -----
+$ ps -ef | grep agent-leak-app
+root      5674  5659  0 18:31 ?        00:00:00 su agent-admin -c  export AGENT_HOME=/home/agent-admin/agent-app export AGENT_PORT=15034 export AGENT_UPLOAD_DIR=/home/agent-admin/agent-app/upload_files export AGENT_KEY_PATH=/home/agent-admin/agent-app/api_keys export AGENT_LOG_DIR=/var/log/agent-app export MEMORY_LIMIT=512 export CPU_MAX_OCCUPY=30 export MULTI_THREAD_ENABLE=true cd /home/agent-admin/agent-app exec script -qfec ./agent-leak-app /evidence/deadlock-before/app-stdout.log 
+agent-a+  5680  5674  0 18:31 ?        00:00:00 script -qfec ./agent-leak-app /evidence/deadlock-before/app-stdout.log
+agent-a+  5681  5680  8 18:31 pts/0    00:00:00 ./agent-leak-app
+agent-a+  5682  5681  2 18:31 pts/0    00:00:00 ./agent-leak-app
+root      5694  5659  0 18:31 ?        00:00:00 /bin/bash /opt/scripts/monitor.sh -i 2 -d 120 -o /evidence/deadlock-before/monitor.log -p agent-leak-app -P 5682
+
+$ ps -o pid,ppid,stat,%cpu,%mem,rss,nlwp,etime,comm -p 5682
+  PID  PPID STAT %CPU %MEM   RSS NLWP     ELAPSED COMMAND
+ 5682  5681 SN+   2.0  0.2 16572    1       00:02 agent-leak-app
+
+$ ps -L -o pid,tid,stat,%cpu,wchan:20,comm -p 5682
+  PID   TID STAT %CPU WCHAN                COMMAND
+ 5682  5682 SN+   2.0 -                    agent-leak-app
+
+$ top -H -b -n1 -p 5682
+MiB Swap:   1024.0 total,   1024.0 free,      0.0 used.   5558.1 avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+ 5682 agent-a+  30  10   22144  16572   8508 S   0.0   0.2   0:00.04 agent-lea+
+
+$ ss -tulnp | grep 15034
+tcp   LISTEN 0      1            0.0.0.0:15034      0.0.0.0:*          
+
+----- snapshot t+23s (2026-08-19 18:31:57) -----
+$ ps -ef | grep agent-leak-app
+root      5674  5659  0 18:31 ?        00:00:00 su agent-admin -c  export AGENT_HOME=/home/agent-admin/agent-app export AGENT_PORT=15034 export AGENT_UPLOAD_DIR=/home/agent-admin/agent-app/upload_files export AGENT_KEY_PATH=/home/agent-admin/agent-app/api_keys export AGENT_LOG_DIR=/var/log/agent-app export MEMORY_LIMIT=512 export CPU_MAX_OCCUPY=30 export MULTI_THREAD_ENABLE=true cd /home/agent-admin/agent-app exec script -qfec ./agent-leak-app /evidence/deadlock-before/app-stdout.log 
+agent-a+  5680  5674  0 18:31 ?        00:00:00 script -qfec ./agent-leak-app /evidence/deadlock-before/app-stdout.log
+agent-a+  5681  5680  0 18:31 pts/0    00:00:00 ./agent-leak-app
+agent-a+  5682  5681  0 18:31 pts/0    00:00:00 ./agent-leak-app
+root      5694  5659  0 18:31 ?        00:00:00 /bin/bash /opt/scripts/monitor.sh -i 2 -d 120 -o /evidence/deadlock-before/monitor.log -p agent-leak-app -P 5682
+
+$ ps -o pid,ppid,stat,%cpu,%mem,rss,nlwp,etime,comm -p 5682
+  PID  PPID STAT %CPU %MEM   RSS NLWP     ELAPSED COMMAND
+ 5682  5681 SNl+  0.2  0.2 16572    3       00:22 agent-leak-app
+
+$ ps -L -o pid,tid,stat,%cpu,wchan:20,comm -p 5682
+  PID   TID STAT %CPU WCHAN                COMMAND
+ 5682  5682 SNl+  0.2 -                    agent-leak-app
+ 5682  5774 SNl+  0.0 -                    agent-leak-app
+ 5682  5775 SNl+  0.0 -                    agent-leak-app
+
+$ top -H -b -n1 -p 5682
+MiB Swap:   1024.0 total,   1024.0 free,      0.0 used.   5562.7 avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+ 5682 agent-a+  30  10  169728  16572   8508 S   0.0   0.2   0:00.05 agent-lea+
+ 5774 agent-a+  30  10  169728  16572   8508 S   0.0   0.2   0:00.00 agent-lea+
+ 5775 agent-a+  30  10  169728  16572   8508 S   0.0   0.2   0:00.00 agent-lea+
+
+$ ss -tulnp | grep 15034
+tcp   LISTEN 0      1            0.0.0.0:15034      0.0.0.0:*          
+
+----- snapshot t+43s (2026-08-19 18:32:17) -----
+$ ps -ef | grep agent-leak-app
+root      5674  5659  0 18:31 ?        00:00:00 su agent-admin -c  export AGENT_HOME=/home/agent-admin/agent-app export AGENT_PORT=15034 export AGENT_UPLOAD_DIR=/home/agent-admin/agent-app/upload_files export AGENT_KEY_PATH=/home/agent-admin/agent-app/api_keys export AGENT_LOG_DIR=/var/log/agent-app export MEMORY_LIMIT=512 export CPU_MAX_OCCUPY=30 export MULTI_THREAD_ENABLE=true cd /home/agent-admin/agent-app exec script -qfec ./agent-leak-app /evidence/deadlock-before/app-stdout.log 
+agent-a+  5680  5674  0 18:31 ?        00:00:00 script -qfec ./agent-leak-app /evidence/deadlock-before/app-stdout.log
+agent-a+  5681  5680  0 18:31 pts/0    00:00:00 ./agent-leak-app
+agent-a+  5682  5681  0 18:31 pts/0    00:00:00 ./agent-leak-app
+root      5694  5659  0 18:31 ?        00:00:00 /bin/bash /opt/scripts/monitor.sh -i 2 -d 120 -o /evidence/deadlock-before/monitor.log -p agent-leak-app -P 5682
+
+$ ps -o pid,ppid,stat,%cpu,%mem,rss,nlwp,etime,comm -p 5682
+  PID  PPID STAT %CPU %MEM   RSS NLWP     ELAPSED COMMAND
+ 5682  5681 SNl+  0.1  0.2 16572    3       00:43 agent-leak-app
+
+$ ps -L -o pid,tid,stat,%cpu,wchan:20,comm -p 5682
+  PID   TID STAT %CPU WCHAN                COMMAND
+ 5682  5682 SNl+  0.1 -                    agent-leak-app
+ 5682  5774 SNl+  0.0 -                    agent-leak-app
+ 5682  5775 SNl+  0.0 -                    agent-leak-app
+
+$ top -H -b -n1 -p 5682
+MiB Swap:   1024.0 total,   1024.0 free,      0.0 used.   5570.1 avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+ 5682 agent-a+  30  10  169728  16572   8508 S   0.0   0.2   0:00.05 agent-lea+
+ 5774 agent-a+  30  10  169728  16572   8508 S   0.0   0.2   0:00.00 agent-lea+
+ 5775 agent-a+  30  10  169728  16572   8508 S   0.0   0.2   0:00.00 agent-lea+
+
+$ ss -tulnp | grep 15034
+tcp   LISTEN 0      1            0.0.0.0:15034      0.0.0.0:*          
+
+----- snapshot t+63s (2026-08-19 18:32:37) -----
+$ ps -ef | grep agent-leak-app
+root      5674  5659  0 18:31 ?        00:00:00 su agent-admin -c  export AGENT_HOME=/home/agent-admin/agent-app export AGENT_PORT=15034 export AGENT_UPLOAD_DIR=/home/agent-admin/agent-app/upload_files export AGENT_KEY_PATH=/home/agent-admin/agent-app/api_keys export AGENT_LOG_DIR=/var/log/agent-app export MEMORY_LIMIT=512 export CPU_MAX_OCCUPY=30 export MULTI_THREAD_ENABLE=true cd /home/agent-admin/agent-app exec script -qfec ./agent-leak-app /evidence/deadlock-before/app-stdout.log 
+agent-a+  5680  5674  0 18:31 ?        00:00:00 script -qfec ./agent-leak-app /evidence/deadlock-before/app-stdout.log
+agent-a+  5681  5680  0 18:31 pts/0    00:00:00 ./agent-leak-app
+agent-a+  5682  5681  0 18:31 pts/0    00:00:00 ./agent-leak-app
+root      5694  5659  0 18:31 ?        00:00:00 /bin/bash /opt/scripts/monitor.sh -i 2 -d 120 -o /evidence/deadlock-before/monitor.log -p agent-leak-app -P 5682
+
+$ ps -o pid,ppid,stat,%cpu,%mem,rss,nlwp,etime,comm -p 5682
+  PID  PPID STAT %CPU %MEM   RSS NLWP     ELAPSED COMMAND
+ 5682  5681 SNl+  0.0  0.2 16572    3       01:03 agent-leak-app
+
+$ ps -L -o pid,tid,stat,%cpu,wchan:20,comm -p 5682
+  PID   TID STAT %CPU WCHAN                COMMAND
+ 5682  5682 SNl+  0.0 -                    agent-leak-app
+ 5682  5774 SNl+  0.0 -                    agent-leak-app
+ 5682  5775 SNl+  0.0 -                    agent-leak-app
+
+$ top -H -b -n1 -p 5682
+MiB Swap:   1024.0 total,   1024.0 free,      0.0 used.   5562.9 avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+ 5682 agent-a+  30  10  169728  16572   8508 S   0.0   0.2   0:00.05 agent-lea+
+ 5774 agent-a+  30  10  169728  16572   8508 S   0.0   0.2   0:00.00 agent-lea+
+ 5775 agent-a+  30  10  169728  16572   8508 S   0.0   0.2   0:00.00 agent-lea+
+
+$ ss -tulnp | grep 15034
+tcp   LISTEN 0      1            0.0.0.0:15034      0.0.0.0:*          
+
+----- snapshot t+84s (2026-08-19 18:32:58) -----
+$ ps -ef | grep agent-leak-app
+root      5674  5659  0 18:31 ?        00:00:00 su agent-admin -c  export AGENT_HOME=/home/agent-admin/agent-app export AGENT_PORT=15034 export AGENT_UPLOAD_DIR=/home/agent-admin/agent-app/upload_files export AGENT_KEY_PATH=/home/agent-admin/agent-app/api_keys export AGENT_LOG_DIR=/var/log/agent-app export MEMORY_LIMIT=512 export CPU_MAX_OCCUPY=30 export MULTI_THREAD_ENABLE=true cd /home/agent-admin/agent-app exec script -qfec ./agent-leak-app /evidence/deadlock-before/app-stdout.log 
+agent-a+  5680  5674  0 18:31 ?        00:00:00 script -qfec ./agent-leak-app /evidence/deadlock-before/app-stdout.log
+agent-a+  5681  5680  0 18:31 pts/0    00:00:00 ./agent-leak-app
+agent-a+  5682  5681  0 18:31 pts/0    00:00:00 ./agent-leak-app
+root      5694  5659  0 18:31 ?        00:00:00 /bin/bash /opt/scripts/monitor.sh -i 2 -d 120 -o /evidence/deadlock-before/monitor.log -p agent-leak-app -P 5682
+
+$ ps -o pid,ppid,stat,%cpu,%mem,rss,nlwp,etime,comm -p 5682
+  PID  PPID STAT %CPU %MEM   RSS NLWP     ELAPSED COMMAND
+ 5682  5681 SNl+  0.0  0.2 16572    3       01:23 agent-leak-app
+
+$ ps -L -o pid,tid,stat,%cpu,wchan:20,comm -p 5682
+  PID   TID STAT %CPU WCHAN                COMMAND
+ 5682  5682 SNl+  0.0 -                    agent-leak-app
+ 5682  5774 SNl+  0.0 -                    agent-leak-app
+ 5682  5775 SNl+  0.0 -                    agent-leak-app
+
+$ top -H -b -n1 -p 5682
+MiB Swap:   1024.0 total,   1024.0 free,      0.0 used.   5574.8 avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+ 5682 agent-a+  30  10  169728  16572   8508 S   0.0   0.2   0:00.05 agent-lea+
+ 5774 agent-a+  30  10  169728  16572   8508 S   0.0   0.2   0:00.00 agent-lea+
+ 5775 agent-a+  30  10  169728  16572   8508 S   0.0   0.2   0:00.00 agent-lea+
+
+$ ss -tulnp | grep 15034
+tcp   LISTEN 0      1            0.0.0.0:15034      0.0.0.0:*          
+
+----- snapshot t+104s (2026-08-19 18:33:18) -----
+$ ps -ef | grep agent-leak-app
+root      5674  5659  0 18:31 ?        00:00:00 su agent-admin -c  export AGENT_HOME=/home/agent-admin/agent-app export AGENT_PORT=15034 export AGENT_UPLOAD_DIR=/home/agent-admin/agent-app/upload_files export AGENT_KEY_PATH=/home/agent-admin/agent-app/api_keys export AGENT_LOG_DIR=/var/log/agent-app export MEMORY_LIMIT=512 export CPU_MAX_OCCUPY=30 export MULTI_THREAD_ENABLE=true cd /home/agent-admin/agent-app exec script -qfec ./agent-leak-app /evidence/deadlock-before/app-stdout.log 
+agent-a+  5680  5674  0 18:31 ?        00:00:00 script -qfec ./agent-leak-app /evidence/deadlock-before/app-stdout.log
+agent-a+  5681  5680  0 18:31 pts/0    00:00:00 ./agent-leak-app
+agent-a+  5682  5681  0 18:31 pts/0    00:00:00 ./agent-leak-app
+root      5694  5659  0 18:31 ?        00:00:00 /bin/bash /opt/scripts/monitor.sh -i 2 -d 120 -o /evidence/deadlock-before/monitor.log -p agent-leak-app -P 5682
+
+$ ps -o pid,ppid,stat,%cpu,%mem,rss,nlwp,etime,comm -p 5682
+  PID  PPID STAT %CPU %MEM   RSS NLWP     ELAPSED COMMAND
+ 5682  5681 SNl+  0.0  0.2 16572    3       01:44 agent-leak-app
+
+$ ps -L -o pid,tid,stat,%cpu,wchan:20,comm -p 5682
+  PID   TID STAT %CPU WCHAN                COMMAND
+ 5682  5682 SNl+  0.0 -                    agent-leak-app
+ 5682  5774 SNl+  0.0 -                    agent-leak-app
+ 5682  5775 SNl+  0.0 -                    agent-leak-app
+
+$ top -H -b -n1 -p 5682
+MiB Swap:   1024.0 total,   1024.0 free,      0.0 used.   5564.2 avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+ 5682 agent-a+  30  10  169728  16572   8508 S   0.0   0.2   0:00.05 agent-lea+
+ 5774 agent-a+  30  10  169728  16572   8508 S   0.0   0.2   0:00.00 agent-lea+
+ 5775 agent-a+  30  10  169728  16572   8508 S   0.0   0.2   0:00.00 agent-lea+
+
+$ ss -tulnp | grep 15034
+tcp   LISTEN 0      1            0.0.0.0:15034      0.0.0.0:*          
+
+----- snapshot t+120s (2026-08-19 18:33:34) -----
+$ ps -ef | grep agent-leak-app
+root      5674  5659  0 18:31 ?        00:00:00 su agent-admin -c  export AGENT_HOME=/home/agent-admin/agent-app export AGENT_PORT=15034 export AGENT_UPLOAD_DIR=/home/agent-admin/agent-app/upload_files export AGENT_KEY_PATH=/home/agent-admin/agent-app/api_keys export AGENT_LOG_DIR=/var/log/agent-app export MEMORY_LIMIT=512 export CPU_MAX_OCCUPY=30 export MULTI_THREAD_ENABLE=true cd /home/agent-admin/agent-app exec script -qfec ./agent-leak-app /evidence/deadlock-before/app-stdout.log 
+agent-a+  5680  5674  0 18:31 ?        00:00:00 script -qfec ./agent-leak-app /evidence/deadlock-before/app-stdout.log
+agent-a+  5681  5680  0 18:31 pts/0    00:00:00 ./agent-leak-app
+agent-a+  5682  5681  0 18:31 pts/0    00:00:00 ./agent-leak-app
+root      5694  5659  0 18:31 ?        00:00:00 /bin/bash /opt/scripts/monitor.sh -i 2 -d 120 -o /evidence/deadlock-before/monitor.log -p agent-leak-app -P 5682
+
+$ ps -o pid,ppid,stat,%cpu,%mem,rss,nlwp,etime,comm -p 5682
+  PID  PPID STAT %CPU %MEM   RSS NLWP     ELAPSED COMMAND
+ 5682  5681 SNl+  0.0  0.2 16572    3       02:00 agent-leak-app
+
+$ ps -L -o pid,tid,stat,%cpu,wchan:20,comm -p 5682
+  PID   TID STAT %CPU WCHAN                COMMAND
+ 5682  5682 SNl+  0.0 -                    agent-leak-app
+ 5682  5774 SNl+  0.0 -                    agent-leak-app
+ 5682  5775 SNl+  0.0 -                    agent-leak-app
+
+$ top -H -b -n1 -p 5682
+MiB Swap:   1024.0 total,   1024.0 free,      0.0 used.   5566.5 avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+ 5682 agent-a+  30  10  169728  16572   8508 S   0.0   0.2   0:00.05 agent-lea+
+ 5774 agent-a+  30  10  169728  16572   8508 S   0.0   0.2   0:00.00 agent-lea+
+ 5775 agent-a+  30  10  169728  16572   8508 S   0.0   0.2   0:00.00 agent-lea+
+
+$ ss -tulnp | grep 15034
+tcp   LISTEN 0      1            0.0.0.0:15034      0.0.0.0:*          
+
+----- FINAL (무응답/생존 판정) -----
+$ cat /proc/5682/status | egrep 'State|Threads|VmRSS'
+State:	S (sleeping)
+VmRSS:	   16572 kB
+Threads:	3
+
+앱 로그 정체 시간: 108s (마지막 기록 이후 갱신 없음)
